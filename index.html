@@ -13,14 +13,14 @@
         .egreso { background: #f8d7da; width: 100px; font-weight: bold; }
         input[type="number"], input[type="text"] { width: 90%; border: none; text-align: center; background: transparent; font-size: 11px; }
         .input-header { background: #fff3cd !important; border-bottom: 2px solid #ffc107 !important; font-weight: bold; }
-        .btn-save { padding: 10px 20px; background: #198754; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-save { padding: 10px 20px; background: #198754; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
         .btn-reset { padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 8px; }
         #loader { color: #0d6efd; font-weight: bold; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="loader">Cargando precios desde Google Sheets...</div>
+    <div id="loader">Cargando precios...</div>
 
     <form id="formVentas">
         <table style="border: none;">
@@ -36,12 +36,19 @@
 
         <table>
             <tr bgcolor="#cccccc">
-                <th colspan="7" style="background: #eee;"></th>
-                <th class="ingreso">INGRESOS (G)</th>
-                <th class="egreso">EGRESOS (I)</th>
+                <td colspan="7" style="background: #eee; height: 15px;"></td>
+                <td style="background: #eee;"></td>
+                <td style="background: #eee;"></td>
             </tr>
 
-            <tr><td class="label" id="label_glp">GAS (GLP)</td><td colspan="6" bgcolor="#f9f9f9"></td><td class="ingreso"></td><td class="egreso"></td></tr>
+            <tr>
+                <td class="label">GAS</td>
+                <td id="label_glp" bgcolor="#f9f9f9" style="font-weight: bold;">GLP (0)</td>
+                <td colspan="5" bgcolor="#f9f9f9"></td>
+                <td class="ingreso">INGRESOS</td>
+                <td class="egreso">EGRESOS</td>
+            </tr>
+
             <tr>
                 <td class="label">Inicio</td>
                 <td><input type="number" step="any" id="gas_ini" oninput="calcular()"></td>
@@ -49,6 +56,7 @@
                 <td class="ingreso" id="view_imp_gas_top">0</td>
                 <td class="egreso"><input type="number" class="egr-val" oninput="calcular()"></td>
             </tr>
+
             <tr>
                 <td class="label">Cierre</td>
                 <td><input type="number" step="any" id="gas_cie" oninput="calcular()"></td>
@@ -56,6 +64,7 @@
                 <td class="ingreso" id="view_imp_s1_top">0</td>
                 <td class="egreso"><input type="number" class="egr-val" oninput="calcular()"></td>
             </tr>
+
             <tr>
                 <td class="label">Litros</td>
                 <td class="calc" id="view_lts_gas">0</td>
@@ -63,6 +72,7 @@
                 <td class="ingreso" id="view_imp_s2_top">0</td>
                 <td class="egreso"><input type="number" class="egr-val" oninput="calcular()"></td>
             </tr>
+
             <tr>
                 <td class="label">Importe</td>
                 <td class="calc" id="view_val_gas">0</td>
@@ -178,32 +188,46 @@
     const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec';
 
     let precios = { gco: 0, dsm: 0, n93: 0, n97: 0, glp: 0 };
+    let cambiosPendientes = false;
 
     function f(n) { return Math.round(n).toLocaleString('es-PY'); }
 
-    async function cargarPrecios() {
-        // Colocar fecha actual
-        document.getElementById('fecha_js').innerText = new Date().toLocaleDateString('es-PY');
+    // Sistema de estados visuales del botón
+    function actualizarEstadoBoton(pendiente) {
+        const btn = document.getElementById('btn_save');
+        cambiosPendientes = pendiente;
+        if (pendiente) {
+            btn.style.background = "#dc3545"; // Rojo
+            btn.innerText = "GUARDAR CAMBIOS PENDIENTES";
+        } else {
+            btn.style.background = "#198754"; // Verde
+            btn.innerText = "TODO GUARDADO";
+        }
+    }
 
+    // Detectar cambios en cualquier input para activar el estado pendiente
+    document.getElementById('formVentas').addEventListener('input', () => {
+        if (!cambiosPendientes) actualizarEstadoBoton(true);
+    });
+
+    async function cargarPrecios() {
+        document.getElementById('fecha_js').innerText = new Date().toLocaleDateString('es-PY');
         try {
             const res = await fetch(URL_PRECIOS);
             const data = await res.text();
             const p = data.split(',').map(v => parseFloat(v.trim()) || 0);
             precios = { gco: p[0], dsm: p[1], n93: p[2], n97: p[3], glp: p[4] };
-
-            document.getElementById('label_glp').innerText = `GAS (GLP: ${f(precios.glp)})`;
+            document.getElementById('label_glp').innerText = `GLP (${f(precios.glp)})`;
             document.querySelectorAll('.p-lab').forEach(el => {
                 const prod = el.getAttribute('data-p');
                 el.innerText = `${el.innerText} (${f(precios[prod])})`;
             });
-
             document.getElementById('loader').style.display = 'none';
             calcular();
         } catch (e) { document.getElementById('loader').innerText = "Error cargando precios"; }
     }
 
     function calcular() {
-        // GAS
         let g_ini = parseFloat(document.getElementById('gas_ini').value) || 0;
         let g_cie = parseFloat(document.getElementById('gas_cie').value) || 0;
         let lts_gas = g_cie - g_ini;
@@ -212,37 +236,33 @@
         document.getElementById('view_val_gas').innerText = f(imp_gas);
         document.getElementById('view_imp_gas_top').innerText = f(imp_gas);
 
-        // Surtidor 1
         let s1_tot = 0;
-        document.querySelectorAll('.s1-ini').forEach(el => {
-            let p = el.getAttribute('data-p');
-            let ini = parseFloat(el.value) || 0;
+        const picos = ['b','c','d','e','f','g'];
+        picos.forEach(p => {
+            let ini = parseFloat(document.getElementById(`s1${p}_ini`).value) || 0;
             let cie = parseFloat(document.getElementById(`s1${p}_cie`).value) || 0;
             let lts = cie - ini;
             let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.dsm);
             let val = lts * precio;
             s1_tot += val;
-            document.getElementById('lts_s1'+p).innerText = lts.toFixed(2);
-            document.getElementById('val_s1'+p).innerText = f(val);
+            document.getElementById(`lts_s1${p}`).innerText = lts.toFixed(2);
+            document.getElementById(`val_s1${p}`).innerText = f(val);
         });
         document.getElementById('view_imp_s1_top').innerText = f(s1_tot);
 
-        // Surtidor 2
         let s2_tot = 0;
-        document.querySelectorAll('.s2-ini').forEach(el => {
-            let p = el.getAttribute('data-p');
-            let ini = parseFloat(el.value) || 0;
+        picos.forEach(p => {
+            let ini = parseFloat(document.getElementById(`s2${p}_ini`).value) || 0;
             let cie = parseFloat(document.getElementById(`s2${p}_cie`).value) || 0;
             let lts = cie - ini;
             let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.gco);
             let val = lts * precio;
             s2_tot += val;
-            document.getElementById('lts_s2'+p).innerText = lts.toFixed(2);
-            document.getElementById('val_s2'+p).innerText = f(val);
+            document.getElementById(`lts_s2${p}`).innerText = lts.toFixed(2);
+            document.getElementById(`val_s2${p}`).innerText = f(val);
         });
         document.getElementById('view_imp_s2_top').innerText = f(s2_tot);
 
-        // Totales
         let sum_ing = imp_gas + s1_tot + s2_tot;
         document.querySelectorAll('.ing-val').forEach(el => { sum_ing += parseFloat(el.value) || 0; });
         let sum_egr = 0;
@@ -263,7 +283,6 @@
         btn.disabled = true; btn.innerText = "ENVIANDO...";
 
         const v = (id) => document.getElementById(id).value || 0;
-
         const payload = {
             operador: op, apertura: ap, cierre: cie,
             gas_ini: v('gas_ini'), gas_cie: v('gas_cie'), gas_lts: document.getElementById('view_lts_gas').innerText,
@@ -281,8 +300,13 @@
         try {
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             alert("Guardado exitoso.");
-            location.reload();
-        } catch (e) { alert("Error al guardar."); btn.disabled = false; btn.innerText = "GUARDAR REGISTRO"; }
+            btn.disabled = false;
+            actualizarEstadoBoton(false);
+        } catch (e) { 
+            alert("Error al guardar."); 
+            btn.disabled = false; 
+            actualizarEstadoBoton(true);
+        }
     }
 
     window.onload = cargarPrecios;
