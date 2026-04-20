@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Fichas - Vista Limpia</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 10px; margin: 10px; background-color: #f0f0f0; }
+        .contenedor { background: #e0e0e0; padding: 10px; border: 1px solid #999; width: fit-content; margin: auto; }
+        .busqueda { background: #fff; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        table { border-collapse: collapse; background: white; table-layout: fixed; width: 900px; }
+        td, th { border: 1px solid #000; padding: 2px; text-align: center; height: 20px; }
+        
+        .header-ficha { text-align: left; font-size: 12px; margin-bottom: 8px; font-weight: bold; }
+        .input-cab { background: #fff3cd; border: none; border-bottom: 1px solid #ffc107; width: 100px; font-weight: bold; }
+        .seccion-titulo { background: #dcdcdc; font-weight: bold; text-align: left; padding-left: 5px; }
+        
+        .col-ing { background: #d1e7dd; font-weight: bold; width: 100px; }
+        .col-egr { background: #f8d7da; font-weight: bold; width: 100px; }
+        .fila-lts { background: #e7f3ff; font-weight: bold; }
+        .total-negro { background: #000; color: #fff; font-weight: bold; text-align: right; padding-right: 10px; }
+        .fila-saldo { background: #0d6efd; color: white; font-weight: bold; font-size: 11px; }
+
+        input { width: 98%; border: none; text-align: center; font-size: 10px; background: transparent; }
+        strong { font-size: 9px; }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+    <div class="busqueda">
+        <strong>FECHA:</strong> <select id="sel_fecha" onchange="actualizarOperadores()"><option>Cargando...</option></select>
+        <strong>OPERADOR:</strong> <select id="sel_operador" onchange="cargarFicha()"><option>Seleccione fecha</option></select>
+    </div>
+
+    <div class="header-ficha">
+        OPERADOR: <input type="text" id="res_operador" class="input-cab" style="width:180px" readonly> 
+        APERTURA: <input type="text" id="res_apertura" class="input-cab" readonly> 
+        CIERRE: <input type="text" id="res_cierre" class="input-cab" readonly> 
+        FECHA: <span id="res_fecha" style="text-decoration: underline; margin-left:10px;">--/--/----</span>
+    </div>
+
+    <table>
+        <tr>
+            <td class="seccion-titulo" style="width:110px;">GAS</td> 
+            <td style="font-weight:bold;">GLP (4.500)</td> 
+            <td colspan="5" style="background:#f9f9f9"></td>
+            <td class="col-ing">INGRESOS</td> 
+            <td class="col-egr">EGRESOS</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Inicio</td>
+            <td><input type="text" id="res_gas_ini" readonly></td>
+            <td colspan="5"></td>
+            <td class="col-ing"></td> 
+            <td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Cierre</td>
+            <td><input type="text" id="res_gas_cie" readonly></td>
+            <td colspan="5"></td>
+            <td class="col-ing"></td> 
+            <td class="col-egr"></td>
+        </tr>
+        <tr class="fila-lts">
+            <td style="text-align:left">Litros</td>
+            <td id="calc_gas_lts">0.00</td>
+            <td colspan="5"></td>
+            <td class="col-ing"></td>
+            <td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Importe Gs.</td>
+            <td id="calc_gas_val">0</td>
+            <td colspan="5"></td>
+            <td class="col-ing"></td> <td class="col-egr"></td>
+        </tr>
+
+        <tr>
+            <td class="seccion-titulo">SURTIDOR 1</td>
+            <td><strong>N93 (7.200)</strong></td><td><strong>N97 (8.600)</strong></td><td><strong>DSm (10.700)</strong></td>
+            <td><strong>N93 (7.200)</strong></td><td><strong>N97 (8.600)</strong></td><td><strong>DSm (10.700)</strong></td>
+            <td class="col-ing"></td>
+            <td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Inicio</td>
+            <td><input type="text" id="res_s1b_ini" readonly></td><td><input type="text" id="res_s1c_ini" readonly></td><td><input type="text" id="res_s1d_ini" readonly></td>
+            <td><input type="text" id="res_s1e_ini" readonly></td><td><input type="text" id="res_s1f_ini" readonly></td><td><input type="text" id="res_s1g_ini" readonly></td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Cierre</td>
+            <td><input type="text" id="res_s1b_cie" readonly></td><td><input type="text" id="res_s1c_cie" readonly></td><td><input type="text" id="res_s1d_cie" readonly></td>
+            <td><input type="text" id="res_s1e_cie" readonly></td><td><input type="text" id="res_s1f_cie" readonly></td><td><input type="text" id="res_s1g_cie" readonly></td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr class="fila-lts">
+            <td style="text-align:left">Litros</td>
+            <td id="calc_s1b_lts">0.00</td><td id="calc_s1c_lts">0.00</td><td id="calc_s1d_lts">0.00</td>
+            <td id="calc_s1e_lts">0.00</td><td id="calc_s1f_lts">0.00</td><td id="calc_s1g_lts">0.00</td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Importe Gs.</td>
+            <td id="calc_s1b_val">0</td><td id="calc_s1c_val">0</td><td id="calc_s1d_val">0</td>
+            <td id="calc_s1e_val">0</td><td id="calc_s1f_val">0</td><td id="calc_s1g_val">0</td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+
+        <tr>
+            <td class="seccion-titulo">SURTIDOR 2</td>
+            <td><strong>N93 (7.200)</strong></td><td><strong>N97 (8.600)</strong></td><td><strong>GCO (9.000)</strong></td>
+            <td><strong>N93 (7.200)</strong></td><td><strong>N97 (8.600)</strong></td><td><strong>GCO (9.000)</strong></td>
+            <td class="col-ing"></td>
+            <td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Inicio</td>
+            <td><input type="text" id="res_s2b_ini" readonly></td><td><input type="text" id="res_s2c_ini" readonly></td><td><input type="text" id="res_s2d_ini" readonly></td>
+            <td><input type="text" id="res_s2e_ini" readonly></td><td><input type="text" id="res_s2f_ini" readonly></td><td><input type="text" id="res_s2g_ini" readonly></td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Cierre</td>
+            <td><input type="text" id="res_s2b_cie" readonly></td><td><input type="text" id="res_s2c_cie" readonly></td><td><input type="text" id="res_s2d_cie" readonly></td>
+            <td><input type="text" id="res_s2e_cie" readonly></td><td><input type="text" id="res_s2f_cie" readonly></td><td><input type="text" id="res_s2g_cie" readonly></td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr class="fila-lts">
+            <td style="text-align:left">Litros</td>
+            <td id="calc_s2b_lts">0.00</td><td id="calc_s2c_lts">0.00</td><td id="calc_s2d_lts">0.00</td>
+            <td id="calc_s2e_lts">0.00</td><td id="calc_s2f_lts">0.00</td><td id="calc_s2g_lts">0.00</td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Importe Gs.</td>
+            <td id="calc_s2b_val">0</td><td id="calc_s2c_val">0</td><td id="calc_s2d_val">0</td>
+            <td id="calc_s2e_val">0</td><td id="calc_s2f_val">0</td><td id="calc_s2g_val">0</td>
+            <td class="col-ing"></td><td class="col-egr"></td>
+        </tr>
+
+        <tr>
+            <td colspan="7" class="total-negro">TOTALES GENERALES:</td>
+            <td class="col-ing" id="res_total_ingresos">0</td>
+            <td class="col-egr" style="background:#bb2d3b; color:#fff;" id="res_total_egresos">0</td>
+        </tr>
+        <tr class="fila-saldo">
+            <td colspan="7" style="text-align:right; padding-right:10px;">SALDO (INGRESOS - EGRESOS):</td>
+            <td colspan="2" id="res_saldo_final">0</td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec';
+    const P = { n93: 7200, n97: 8600, dsm: 10700, gco: 9000, glp: 4500 };
+    let baseDeDatos = [];
+
+    async function iniciar() {
+        try {
+            const res = await fetch(`${URL_SCRIPT}?action=getListas`);
+            const data = await res.json();
+            baseDeDatos = data;
+            const sf = document.getElementById('sel_fecha');
+            sf.innerHTML = '<option value="">Seleccione...</option>';
+            data.fechas.reverse().forEach(f => sf.innerHTML += `<option value="${f}">${f}</option>`);
+        } catch (e) { console.error(e); }
+    }
+
+    function actualizarOperadores() {
+        const so = document.getElementById('sel_operador');
+        so.innerHTML = '<option value="">Seleccione...</option>';
+        if(baseDeDatos.operadores) {
+            baseDeDatos.operadores.forEach(o => so.innerHTML += `<option value="${o}">${o}</option>`);
+        }
+    }
+
+    function fmt(n) { return Number(n || 0).toLocaleString('es-PY'); }
+
+    function setCalc(idI, idC, idL, idV, precio) {
+        const ini = parseFloat(document.getElementById(idI).value) || 0;
+        const cie = parseFloat(document.getElementById(idC).value) || 0;
+        const lts = cie - ini;
+        document.getElementById(idL).innerText = lts.toFixed(2);
+        if(idV) document.getElementById(idV).innerText = fmt(lts * precio);
+    }
+
+    async function cargarFicha() {
+        const fecha = document.getElementById('sel_fecha').value;
+        const operador = document.getElementById('sel_operador').value;
+        if(!fecha || !operador) return;
+        
+        try {
+            const res = await fetch(`${URL_SCRIPT}?action=buscarFicha&fecha=${fecha}&operador=${operador}`);
+            const r = await res.json();
+            if(r.success) {
+                const d = r.datos;
+                document.getElementById('res_operador').value = d.operador;
+                document.getElementById('res_apertura').value = d.apertura;
+                document.getElementById('res_cierre').value = d.cierre;
+                document.getElementById('res_fecha').innerText = d.fecha;
+
+                document.getElementById('res_gas_ini').value = d.gas_ini;
+                document.getElementById('res_gas_cie').value = d.gas_cie;
+
+                const campos = ['s1b','s1c','s1d','s1e','s1f','s1g','s2b','s2c','s2d','s2e','s2f','s2g'];
+                campos.forEach(c => {
+                    document.getElementById(`res_${c}_ini`).value = d[`${c}_ini`] || 0;
+                    document.getElementById(`res_${c}_cie`).value = d[`${c}_cie`] || 0;
+                });
+
+                setCalc('res_gas_ini', 'res_gas_cie', 'calc_gas_lts', 'calc_gas_val', P.glp);
+                setCalc('res_s1b_ini', 'res_s1b_cie', 'calc_s1b_lts', 'calc_s1b_val', P.n93);
+                setCalc('res_s1c_ini', 'res_s1c_cie', 'calc_s1c_lts', 'calc_s1c_val', P.n97);
+                setCalc('res_s1d_ini', 'res_s1d_cie', 'calc_s1d_lts', 'calc_s1d_val', P.dsm);
+                setCalc('res_s1e_ini', 'res_s1e_cie', 'calc_s1e_lts', 'calc_s1e_val', P.n93);
+                setCalc('res_s1f_ini', 'res_s1f_cie', 'calc_s1f_lts', 'calc_s1f_val', P.n97);
+                setCalc('res_s1g_ini', 'res_s1g_cie', 'calc_s1g_lts', 'calc_s1g_val', P.dsm);
+                setCalc('res_s2b_ini', 'res_s2b_cie', 'calc_s2b_lts', 'calc_s2b_val', P.n93);
+                setCalc('res_s2c_ini', 'res_s2c_cie', 'calc_s2c_lts', 'calc_s2c_val', P.n97);
+                setCalc('res_s2d_ini', 'res_s2d_cie', 'calc_s2d_lts', 'calc_s2d_val', P.gco);
+                setCalc('res_s2e_ini', 'res_s2e_cie', 'calc_s2e_lts', 'calc_s2e_val', P.n93);
+                setCalc('res_s2f_ini', 'res_s2f_cie', 'calc_s2f_lts', 'calc_s2f_val', P.n97);
+                setCalc('res_s2g_ini', 'res_s2g_cie', 'calc_s2g_lts', 'calc_s2g_val', P.gco);
+
+                const ing = Number(d.total_ingresos || 0);
+                const egr = Number(d.total_egresos || 0);
+                document.getElementById('res_total_ingresos').innerText = fmt(ing);
+                document.getElementById('res_total_egresos').innerText = fmt(egr);
+                document.getElementById('res_saldo_final').innerText = fmt(ing - egr);
+            }
+        } catch (e) { console.error(e); }
+    }
+    window.onload = iniciar;
+</script>
+</body>
+</html>
