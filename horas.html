@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Asistencia - Alberdi</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a237e; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #1a237e; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        #status { text-align: center; color: #666; font-style: italic; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Horas Trabajadas por Operador</h2>
+        <div id="status">Cargando reporte automáticamente...</div>
+        
+        <table id="tablaReporte">
+            <thead>
+                <tr>
+                    <th>Operador</th>
+                    <th>Días</th>
+                    <th>Total Horas</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+        
+        <button onclick="cargarReporte()" style="margin-top: 20px; padding: 10px; cursor: pointer;">Actualizar Datos</button>
+    </div>
+
+    <script>
+        // REEMPLAZA CON TU URL DE SCRIPT ACTUALIZADA
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+
+        // Esta función se ejecuta sola al cargar la página
+        window.onload = function() {
+            cargarReporte();
+        };
+
+        async function cargarReporte() {
+            const status = document.getElementById('status');
+            const cuerpo = document.getElementById('cuerpoTabla');
+            
+            status.innerText = "Calculando horas desde la base de datos...";
+            
+            try {
+                // Añadimos timestamp para evitar caché y asegurar datos frescos
+                const res = await fetch(`${URL_SCRIPT}?action=getReporteHoras&t=${Date.now()}`);
+                const datos = await res.json();
+                
+                cuerpo.innerHTML = "";
+
+                for (let op in datos) {
+                    // Verificación de seguridad para evitar el error de toFixed
+                    let totalH = datos[op].totalHoras;
+                    let horasFormateadas = (totalH !== null && totalH !== undefined) 
+                                           ? totalH.toFixed(2) 
+                                           : "0.00";
+
+                    let fila = `<tr>
+                        <td>${op}</td>
+                        <td>${datos[op].diasTrabajados || 0}</td>
+                        <td>${horasFormateadas} hs</td>
+                    </tr>`;
+                    cuerpo.innerHTML += fila;
+                }
+                status.innerText = "Reporte actualizado al: " + new Date().toLocaleTimeString();
+            } catch (e) {
+                console.error(e);
+                status.innerText = "Error al cargar: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
