@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Compras - Alberdi</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h2 { color: #1a237e; text-align: center; }
+        .campo { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🚚 INGRESO DE CAMIÓN</h2>
+    <form id="formCompra">
+        <div class="campo">
+            <label>Producto:</label>
+            <select id="producto" required>
+                <option value="GCO">Gasoil Común (GCO)</option>
+                <option value="GSM">Gasoil S. Especial (GSM)</option>
+                <option value="N93">Nafta 93</option>
+                <option value="N97">Nafta 97</option>
+                <option value="GLP">Gas (GLP)</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Tanque de Destino:</label>
+            <select id="tanque" required>
+                <option value="1">Tanque 1 (Reserva)</option>
+                <option value="2">Tanque 2</option>
+                <option value="3">Tanque 3</option>
+                <option value="4">Tanque 4</option>
+                <option value="5">Tanque 5</option>
+                <option value="6">Tanque 6</option>
+                <option value="7">Tanque 7</option>
+                <option value="8">Tanque 8 (Gas)</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Litros según Factura:</label>
+            <input type="number" id="litros" placeholder="Ej: 5000" required>
+        </div>
+        <div class="campo">
+            <label>Nro de Factura / Remisión:</label>
+            <input type="text" id="factura" placeholder="001-001-..." required>
+        </div>
+        <button type="button" id="btn" class="btn" onclick="enviarCompra()">REGISTRAR DESCARGA</button>
+    </form>
+</div>
+
+<script>
+    const URL_APP = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+                     
+
+async function enviarCompra() {
+    const btn = document.getElementById('btn');
+    const payload = {
+        action: "guardarCompra", // Llave para el script
+        producto: document.getElementById('producto').value,
+        tanque: document.getElementById('tanque').value,
+        litros: document.getElementById('litros').value,
+        factura: document.getElementById('factura').value
+    };
+
+    if(!payload.litros) return alert("Ingrese litros");
+
+    btn.disabled = true;
+    btn.innerText = "REGISTRANDO...";
+
+    try {
+        // Forzamos la acción en la URL también
+        await fetch(URL_APP + "?action=guardarCompra", {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        });
+        
+        alert("¡Compra enviada con éxito!");
+        document.getElementById('formCompra').reset();
+    } catch (e) {
+        alert("Error: " + e);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "REGISTRAR DESCARGA";
+    }
+}
+</script>
+</body>
+</html>
