@@ -318,12 +318,12 @@ async function enviarARegistros() {
     const urlFinal = `${URL_SCRIPT}?action=guardarVenta`;
 
     try {
-        await fetch(urlFinal, { 
-            method: 'POST', 
-            mode: 'no-cors', // Mantenemos no-cors para evitar bloqueos del navegador
-            cache: 'no-cache',
-            body: JSON.stringify(payload) 
-        });
+        // Asegúrate de que el fetch sea así:
+await fetch(URL_SCRIPT + "?action=guardarVenta", { 
+    method: 'POST', 
+    mode: 'no-cors', 
+    body: JSON.stringify(payload) 
+});
         
         alert("¡Venta registrada con éxito en la pestaña Registros!");
         btn.disabled = false;
