@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Compacto Alberdi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1117; margin: 10px; color: #e6edf3; font-size: 13px; }
+        .container { max-width: 100%; margin: auto; background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d; }
+        
+        .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; align-items: center; background: #21262d; padding: 10px; border-radius: 6px; }
+        select { padding: 5px; border-radius: 4px; background: #0d1117; color: white; border: 1px solid #30363d; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 6px 8px; border: 1px solid #30363d; text-align: left; line-height: 1.2; }
+        th { background-color: #21262d; color: #58a6ff; font-size: 12px; }
+        
+        /* Gráficos más delgados */
+        .bar-container { background: #30363d; width: 100%; height: 8px; border-radius: 4px; margin-top: 3px; overflow: hidden; }
+        .bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        
+        .bar-n93 { background: #ffd600; }
+        .bar-n97 { background: #0052d4; }
+        .bar-gsm { background: #8b949e; }
+        .bar-gco { background: #238636; }
+        .bar-glp { background: #f85149; }
+        
+        .val-num { font-family: monospace; font-weight: bold; font-size: 13px; }
+        .total-dia { background: #21262d; font-weight: bold; text-align: center; color: #aff5b4; font-size: 14px; }
+        
+        .hidden { display: none; }
+        b { color: #58a6ff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="controls">
+            <strong>Filtro:</strong>
+            <select id="filtroProducto" onchange="actualizarVista()">
+                <option value="todos">TODOS LOS PRODUCTOS</option>
+                <option value="n93">N93 (T3-T5)</option>
+                <option value="n97">N97 (T4-T6)</option>
+                <option value="gsm">G-SMART (T2)</option>
+                <option value="gco">G-COMÚN (T1-T7)</option>
+                <option value="glp">GLP (T8)</option>
+            </select>
+            <button onclick="fetchVentas()" style="background:#238636; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Refrescar</button>
+        </div>
+        
+        <table id="tablaVentas">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Fecha</th>
+                    <th class="col-n93">N93</th>
+                    <th class="col-n97">N97</th>
+                    <th class="col-gsm">G-Smart</th>
+                    <th class="col-gco">G-Común</th>
+                    <th class="col-glp">GLP</th>
+                    <th style="width: 110px;">Total Lts</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+    </div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    let datosGlobales = null;
+
+    function fetchVentas() {
+        const script = document.createElement('script');
+        script.src = `${SCRIPT_URL}?action=getHistoricoVentas&callback=guardarYProcesar`;
+        document.body.appendChild(script);
+        document.body.removeChild(script);
+    }
+
+    function guardarYProcesar(rows) {
+        datosGlobales = rows;
+        actualizarVista();
+    }
+
+    // Función para normalizar fechas y permitir ordenamiento correcto
+    function parseFecha(str) {
+        const partes = str.split('/');
+        if(partes.length === 3) {
+            // Asume formato DD/MM/YYYY
+            return new Date(partes[2], partes[1] - 1, partes[0]).getTime();
+        }
+        return new Date(str).getTime();
+    }
+
+    function actualizarVista() {
+        if (!datosGlobales) return;
+        
+        const filtro = document.getElementById('filtroProducto').value;
+        const headers = datosGlobales[0];
+        const rows = datosGlobales.slice(1);
+        const reporte = {};
+
+        rows.forEach(row => {
+            let fObj = new Date(row[0]);
+            if (isNaN(fObj)) return;
+            let fStr = fObj.toLocaleDateString('es-PY'); // Formato uniforme
+
+            if (!reporte[fStr]) reporte[fStr] = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+            
+            const v = (name) => {
+                let i = headers.indexOf(name);
+                return i !== -1 ? (parseFloat(row[i]) || 0) : 0;
+            };
+
+            reporte[fStr].n93 += (v('s1b_cie')-v('s1b_ini')) + (v('s1e_cie')-v('s1e_ini')) + (v('s2b_cie')-v('s2b_ini')) + (v('s2e_cie')-v('s2e_ini'));
+            reporte[fStr].n97 += (v('s1c_cie')-v('s1c_ini')) + (v('s1f_cie')-v('s1f_ini')) + (v('s2c_cie')-v('s2c_ini')) + (v('s2f_cie')-v('s2f_ini'));
+            reporte[fStr].gsm += (v('s1d_cie')-v('s1d_ini')) + (v('s1g_cie')-v('s1g_ini'));
+            reporte[fStr].gco += (v('s2d_cie')-v('s2d_ini')) + (v('s2g_cie')-v('s2g_ini'));
+            reporte[fStr].glp += v('gas_lts');
+        });
+
+        // Ordenamiento Descendente (Más nuevo arriba) corregido
+        const fechasOrdenadas = Object.keys(reporte).sort((a, b) => parseFecha(b) - parseFecha(a));
+
+        let maxVal = 0;
+        fechasOrdenadas.forEach(f => {
+            let val = (filtro === 'todos') ? (reporte[f].n93 + reporte[f].n97 + reporte[f].gsm + reporte[f].gco + reporte[f].glp) : reporte[f][filtro];
+            if (val > maxVal) maxVal = val;
+        });
+
+        const cuerpo = document.getElementById('cuerpoTabla');
+        cuerpo.innerHTML = '';
+
+        fechasOrdenadas.forEach(fecha => {
+            const d = reporte[fecha];
+            const total = d.n93 + d.n97 + d.gsm + d.gco + d.glp;
+
+            cuerpo.innerHTML += `
+                <tr>
+                    <td><b>${fecha}</b></td>
+                    <td class="col-n93 ${filtro !== 'todos' && filtro !== 'n93' ? 'hidden' : ''}">
+                        <span class="val-num">${Math.round(d.n93)}</span>
+                        <div class="bar-container"><div class="bar bar-n93" style="width:${(d.n93/maxVal)*100}%"></div></div>
+                    </td>
+                    <td class="col-n97 ${filtro !== 'todos' && filtro !== 'n97' ? 'hidden' : ''}">
+                        <span class="val-num">${Math.round(d.n97)}</span>
+                        <div class="bar-container"><div class="bar bar-n97" style="width:${(d.n97/maxVal)*100}%"></div></div>
+                    </td>
+                    <td class="col-gsm ${filtro !== 'todos' && filtro !== 'gsm' ? 'hidden' : ''}">
+                        <span class="val-num">${Math.round(d.gsm)}</span>
+                        <div class="bar-container"><div class="bar bar-gsm" style="width:${(d.gsm/maxVal)*100}%"></div></div>
+                    </td>
+                    <td class="col-gco ${filtro !== 'todos' && filtro !== 'gco' ? 'hidden' : ''}">
+                        <span class="val-num">${Math.round(d.gco)}</span>
+                        <div class="bar-container"><div class="bar bar-gco" style="width:${(d.gco/maxVal)*100}%"></div></div>
+                    </td>
+                    <td class="col-glp ${filtro !== 'todos' && filtro !== 'glp' ? 'hidden' : ''}">
+                        <span class="val-num">${Math.round(d.glp)}</span>
+                        <div class="bar-container"><div class="bar bar-glp" style="width:${(d.glp/maxVal)*100}%"></div></div>
+                    </td>
+                    <td class="total-dia">${Math.round(total).toLocaleString()}</td>
+                </tr>
+            `;
+        });
+    }
+
+    fetchVentas();
+</script>
+</body>
+</html>
