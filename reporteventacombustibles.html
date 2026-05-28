@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte Compacto Alberdi</title>
+    <title>Reporte Compacto Alberdi - Líquidos</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0d1117; margin: 10px; color: #e6edf3; font-size: 13px; }
         .container { max-width: 100%; margin: auto; background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d; }
@@ -22,7 +22,6 @@
         .bar-n97 { background: #0052d4; }
         .bar-gsm { background: #8b949e; }
         .bar-gco { background: #238636; }
-        .bar-glp { background: #f85149; }
         
         .val-num { font-family: monospace; font-weight: bold; font-size: 13px; }
         .total-dia { background: #21262d; font-weight: bold; text-align: center; color: #aff5b4; font-size: 14px; }
@@ -42,7 +41,6 @@
                 <option value="n97">N97 (T4-T6)</option>
                 <option value="gsm">G-SMART (T2)</option>
                 <option value="gco">G-COMÚN (T1-T7)</option>
-                <option value="glp">GLP (T8)</option>
             </select>
             <button onclick="fetchVentas()" style="background:#238636; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Refrescar</button>
         </div>
@@ -55,7 +53,6 @@
                     <th class="col-n97">N97</th>
                     <th class="col-gsm">G-Smart</th>
                     <th class="col-gco">G-Común</th>
-                    <th class="col-glp">GLP</th>
                     <th style="width: 110px;">Total Lts</th>
                 </tr>
             </thead>
@@ -79,11 +76,9 @@
         actualizarVista();
     }
 
-    // Función para normalizar fechas y permitir ordenamiento correcto
     function parseFecha(str) {
         const partes = str.split('/');
         if(partes.length === 3) {
-            // Asume formato DD/MM/YYYY
             return new Date(partes[2], partes[1] - 1, partes[0]).getTime();
         }
         return new Date(str).getTime();
@@ -100,9 +95,9 @@
         rows.forEach(row => {
             let fObj = new Date(row[0]);
             if (isNaN(fObj)) return;
-            let fStr = fObj.toLocaleDateString('es-PY'); // Formato uniforme
+            let fStr = fObj.toLocaleDateString('es-PY');
 
-            if (!reporte[fStr]) reporte[fStr] = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+            if (!reporte[fStr]) reporte[fStr] = { n93: 0, n97: 0, gsm: 0, gco: 0 };
             
             const v = (name) => {
                 let i = headers.indexOf(name);
@@ -112,18 +107,15 @@
             reporte[fStr].n93 += (v('s1b_cie')-v('s1b_ini')) + (v('s1e_cie')-v('s1e_ini')) + (v('s2b_cie')-v('s2b_ini')) + (v('s2e_cie')-v('s2e_ini'));
             reporte[fStr].n97 += (v('s1c_cie')-v('s1c_ini')) + (v('s1f_cie')-v('s1f_ini')) + (v('s2c_cie')-v('s2c_ini')) + (v('s2f_cie')-v('s2f_ini'));
             reporte[fStr].gsm += (v('s1d_cie')-v('s1d_ini')) + (v('s1g_cie')-v('s1g_ini'));
+            // Línea corregida: se eliminó el residuo inválido de GLP
             reporte[fStr].gco += (v('s2d_cie')-v('s2d_ini')) + (v('s2g_cie')-v('s2g_ini'));
-            reporte[fStr].glp += (v('gas_cie') - v('gas_ini'));
-            
-
         });
 
-        // Ordenamiento Descendente (Más nuevo arriba) corregido
         const fechasOrdenadas = Object.keys(reporte).sort((a, b) => parseFecha(b) - parseFecha(a));
 
         let maxVal = 0;
         fechasOrdenadas.forEach(f => {
-            let val = (filtro === 'todos') ? (reporte[f].n93 + reporte[f].n97 + reporte[f].gsm + reporte[f].gco + reporte[f].glp) : reporte[f][filtro];
+            let val = (filtro === 'todos') ? (reporte[f].n93 + reporte[f].n97 + reporte[f].gsm + reporte[f].gco) : reporte[f][filtro];
             if (val > maxVal) maxVal = val;
         });
 
@@ -132,7 +124,7 @@
 
         fechasOrdenadas.forEach(fecha => {
             const d = reporte[fecha];
-            const total = d.n93 + d.n97 + d.gsm + d.gco + d.glp;
+            const total = d.n93 + d.n97 + d.gsm + d.gco;
 
             cuerpo.innerHTML += `
                 <tr>
@@ -152,10 +144,6 @@
                     <td class="col-gco ${filtro !== 'todos' && filtro !== 'gco' ? 'hidden' : ''}">
                         <span class="val-num">${Math.round(d.gco)}</span>
                         <div class="bar-container"><div class="bar bar-gco" style="width:${(d.gco/maxVal)*100}%"></div></div>
-                    </td>
-                    <td class="col-glp ${filtro !== 'todos' && filtro !== 'glp' ? 'hidden' : ''}">
-                        <span class="val-num">${Math.round(d.glp)}</span>
-                        <div class="bar-container"><div class="bar bar-glp" style="width:${(d.glp/maxVal)*100}%"></div></div>
                     </td>
                     <td class="total-dia">${Math.round(total).toLocaleString()}</td>
                 </tr>

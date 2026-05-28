@@ -7,121 +7,119 @@
         body { font-family: 'Segoe UI', sans-serif; background: #080808; color: #eee; margin: 0; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; max-width: 1600px; margin: 0 auto; }
         .card { background: #151515; border: 1px solid #333; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        
-        /* Cabecera del Tanque */
         .card-header { border-bottom: 1px solid #222; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
         .tag-prod { padding: 4px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         .n93 { background: #ffd600; color: #000; } .n97 { background: #0052d4; color: #fff; } 
-        .gco { background: #444; color: #fff; } .gsm { background: #999; color: #000; } .glp { background: #f83600; color: #fff; }
-
-        /* Valores de Litros */
-        .main-val { font-size: 38px; font-weight: bold; color: #00ff00; line-height: 1; }
-        .original-val { font-size: 14px; color: #888; margin-top: 5px; }
-
-        /* Sección de Totalizadores */
-        .picos-box { background: #1a1a1a; border-radius: 8px; padding: 12px; border-left: 3px solid #00d4ff; }
-        .pico-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid #282828; padding-bottom: 3px; }
-        .pico-name { color: #ffeb3b; font-weight: bold; }
-        
-        #reloj { text-align: center; color: #555; margin-bottom: 20px; font-family: monospace; }
-        .badge-venta { background: #3d0000; color: #ff4444; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .gco { background: #444; color: #fff; } .gsm { background: #e040fb; color: #fff; } .glp { background: #00e676; color: #000; }
+        .tank-title { font-size: 16px; font-weight: bold; margin: 0; color: #fff; }
+        .tank-visual { height: 160px; background: #222; border: 2px solid #444; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: flex-end; }
+        .tank-fill { width: 100%; transition: height 0.5s ease; position: relative; }
+        .f-n93 { background: linear-gradient(to top, #e5c100, #ffd600); } .f-n97 { background: linear-gradient(to top, #003fa3, #0052d4); }
+        .f-gco { background: linear-gradient(to top, #222, #555); } .f-gsm { background: linear-gradient(to top, #b500c9, #e040fb); }
+        .f-glp { background: linear-gradient(to top, #00b34a, #00e676); }
+        .tank-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-weight: bold; }
+        .tank-liters { font-size: 24px; color: #fff; } .tank-pct { font-size: 14px; color: #ccc; margin-top: 2px; }
+        .picos-box { background: #111; border-radius: 6px; padding: 10px; font-size: 12px; border: 1px solid #222; }
+        .loading { text-align: center; font-size: 20px; color: #888; margin-top: 40px; }
+        .error-msg { background: #7f1d1d; border: 1px solid #f87171; padding: 15px; border-radius: 8px; max-width: 500px; margin: 20px auto; text-align: center; color: #fca5a5; }
     </style>
 </head>
 <body>
 
-    <div style="text-align:center; margin-bottom:25px;">
-        <h1 style="margin:0; letter-spacing: 2px;">ESTADO DE TANQUES Y PICOS</h1>
-        <div id="reloj">Sincronizando datos del servidor...</div>
-    </div>
-
-    <div class="grid" id="panel"></div>
+    <h1 style="text-align:center; margin-bottom:30px; font-weight:300; letter-spacing:1px;">📊 MONITOREO DE STOCK EN TIEMPO REAL</h1>
+    <div id="loading" class="loading">Conectando con la central de tanques...</div>
+    <div id="contenedor" class="grid"></div>
 
 <script>
-    // URL de tu script de Google Apps Script
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
 
-    function refresh() {
+    function cargarMonitor() {
         const script = document.createElement('script');
-        script.src = `${SCRIPT_URL}?action=leerMonitoreo&callback=render`;
+        script.src = `${URL_SCRIPT}?action=leerMonitoreo&callback=renderizar`;
+        script.onerror = function() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('contenedor').innerHTML = `<div class="error-msg"><strong>Error de Red:</strong><br>No se pudo conectar con el servidor de Google Apps Script.</div>`;
+        };
         document.body.appendChild(script);
-        document.body.removeChild(script);
     }
 
-    function render(res) {
-        document.getElementById('reloj').innerText = "ÚLTIMA ACTUALIZACIÓN: " + new Date().toLocaleTimeString();
-        const panel = document.getElementById('panel');
-        panel.innerHTML = '';
+    function renderizar(res) {
+        document.getElementById('loading').style.display = 'none';
+        const contenedor = document.getElementById('contenedor');
+        contenedor.innerHTML = "";
 
-        // Se recorren los 8 tanques configurados en el backend
+        if (!res || res.error) {
+            contenedor.innerHTML = `<div class="error-msg"><strong>Error del Servidor:</strong><br>${res ? res.error : 'No se recibieron datos de la planilla.'}</div>`;
+            return;
+        }
+
+        const clasesProd = { "Gco": "gco", "Gsm": "gsm", "N93": "n93", "N97": "n97", "GLP": "glp" };
+
         for (let i = 1; i <= 8; i++) {
-            const conf = res.config.tanques[i];
-            const actual = res.actual[i];
-            const inicial = res.inicial[i];
-            const venta = inicial - actual;
-            const claseProd = conf.prod.toLowerCase();
+            const nombre = res.config.nombres[i];
+            const cap = res.config.capacidades[i];
+            const actual = Math.max(0, Math.round(res.actual[i] || 0));
+            let pct = cap > 0 ? ((actual / cap) * 100).toFixed(1) : 0;
+            pct = Math.min(100, Math.max(0, pct));
 
-            panel.innerHTML += `
+            let prodKey = "Gco";
+            if (i === 2) prodKey = "Gsm";
+            if (i === 3 || i === 5) prodKey = "N93";
+            if (i === 4 || i === 6) prodKey = "N97";
+            if (i === 8) prodKey = "GLP";
+
+            const LabProd = clasesProd[prodKey] || "gco";
+
+            contenedor.innerHTML += `
                 <div class="card">
                     <div class="card-header">
-                        <div>
-                            <div style="font-size:12px; color:#666">TANQUE ${i}</div>
-                            <div style="font-size:18px; font-weight:bold">${conf.nombre}</div>
-                        </div>
-                        <span class="tag-prod ${claseProd}">${conf.prod}</span>
+                        <div class="tank-title">${nombre}</div>
+                        <span class="tag-prod ${LabProd}">${prodKey}</span>
                     </div>
-
-                    <div>
-                        <div class="main-val">${Math.round(actual).toLocaleString()} <small style="font-size:16px">L</small></div>
-                        <div class="original-val">
-                            Inició con: <b>${Math.round(inicial).toLocaleString()} L</b> 
-                            <span class="badge-venta">-${Math.round(venta).toLocaleString()} L</span>
+                    <div class="tank-visual">
+                        <div class="tank-fill f-${LabProd}" style="height: ${pct}%"></div>
+                        <div class="tank-overlay">
+                            <div class="tank-liters">${actual.toLocaleString('es-PY')} L</div>
+                            <div class="tank-pct">${pct}% de ${cap.toLocaleString('es-PY')} L</div>
                         </div>
                     </div>
-
                     <div class="picos-box">
                         <div style="font-size:11px; color:#666; margin-bottom:8px; font-weight:bold">TOTALIZADORES ORIGINALES (Punto Cero)</div>
-                        ${renderPicosPorTanque(i)}
+                        ${renderPicosPorTanque(i, res.totalizadores_ini, res.config.mapeoPicos)}
                     </div>
                 </div>
             `;
         }
     }
 
-    function renderPicosPorTanque(tId) {
-        /**
-         * RELACIÓN FÍSICA ACTUALIZADA:
-         * T5: s2b, s2e (N93)
-         * T7: s2d, s2g (Gco)
-         *[cite: 7, 8]
-         */
+    function renderPicosPorTanque(tId, picosIni, mapeo) {
         const relacion = {
             1: [],
-            2: ["s1d", "s1g"], // Gsm
-            3: ["s1b", "s1e"], // N93
-            4: ["s1c", "s1f"], // N97
-            5: ["s2b", "s2e"], // N93 (Actualizado)
-            6: ["s2c", "s2f"], // N97
-            7: ["s2d", "s2g"], // Gco (Actualizado)
-            8: ["gas"]         // GLP
+            2: ["s1d", "s1g"], 
+            3: ["s1b", "s1e"], 
+            4: ["s1c", "s1f"], 
+            5: ["s2b", "s2e"], 
+            6: ["s2c", "s2f"], 
+            7: ["s2d", "s2g"], 
+            8: ["gas"]         
         };
 
         const listaPicos = relacion[tId];
-        if (!listaPicos || listaPicos.length === 0) return `<div style="color:#444; font-size:12px">Sin picos asociados.</div>`;
+        if (!listaPicos || listaPicos.length === 0) return `<div style="color:#444; font-size:11px">Sin picos mecánicos asociados.</div>`;
 
         let html = "";
         listaPicos.forEach(nombrePico => {
-            html += `
-                <div class="pico-row">
-                    <span class="pico-name">${nombrePico.toUpperCase()}</span>
-                    <span>Registrado en Control Inicial</span>
-                </div>
-            `;
+            const valorIni = picosIni[nombrePico] !== undefined ? picosIni[nombrePico] : 0;
+            const infoPico = mapeo[nombrePico] ? mapeo[nombrePico].p : "Litros";
+            html += `<div style="display:flex; justify-content:space-between; margin-bottom:3px; color:#ccc;">
+                        <span>Pico <strong>${nombrePico.toUpperCase()}</strong> (${infoPico}):</span>
+                        <span style="font-family:monospace; color:#00e676;">${Number(valorIni).toLocaleString('es-PY')} L</span>
+                     </div>`;
         });
         return html;
     }
 
-    refresh();
-    setInterval(refresh, 30000); // Actualización automática cada 30 segundos
+    window.onload = cargarMonitor;
 </script>
 </body>
 </html>

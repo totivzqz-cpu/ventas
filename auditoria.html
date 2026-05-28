@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoría de Cálculos - Control de Tanques</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f1f5f9; padding: 30px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; color: #38bdf8; font-weight: 300; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; }
+        
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; display: none; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: #38bdf8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        tr:hover { background-color: #24334d; transition: background 0.2s ease; }
+        
+        .tag-prod { padding: 3px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; display: inline-block; }
+        .n93 { background: #ffd600; color: #000; } 
+        .n97 { background: #0052d4; color: #fff; } 
+        .gco { background: #475569; color: #fff; } 
+        .gsm { background: #e040fb; color: #fff; } 
+        .glp { background: #ff5722; color: #fff; }
+        
+        .num { text-align: right; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
+        
+        .total-row { background-color: #0f172a; font-weight: bold; border-top: 2px solid #334155; }
+        .total-row td { color: #38bdf8; }
+        
+        #loading { text-align: center; font-size: 18px; color: #94a3b8; margin: 40px 0; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error-msg { background: #7f1d1d; border: 1px solid #f87171; color: #fca5a5; padding: 15px; border-radius: 6px; margin-top: 20px; line-height: 1.5; }
+        #tabla-error { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Auditoría de Movimiento de Tanques</h1>
+    <p class="subtitle">Verificación de ecuaciones de stock: Inicial (+) Compras (-) Ventas (=) Teórico Actual</p>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        Procesando datos del servidor de la estación...
+    </div>
+
+    <div id="tabla-error"></div>
+
+    <table id="tabla-auditoria">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Combustible</th>
+                <th style="text-align: right;">Inventario Inicial</th>
+                <th style="text-align: right;">(+) Compras (Descargas)</th>
+                <th style="text-align: right;">(-) Ventas Calculadas</th>
+                <th style="text-align: right;">(=) Stock Teórico Actual</th>
+            </tr>
+        </thead>
+        <tbody id="contenido-tabla">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+
+    function cargarAuditoria() {
+        const script = document.createElement('script');
+        script.src = `${URL_SCRIPT}?action=leerMonitoreo&callback=renderizarAuditoria`;
+        script.onerror = function() {
+            document.getElementById('loading').style.display = 'none';
+            mostrarError("Error de red o CORS: No se pudo conectar al Apps Script.");
+        };
+        document.body.appendChild(script);
+    }
+
+    function renderizarAuditoria(res) {
+        document.getElementById('loading').style.display = 'none';
+        
+        if (!res || res.error) {
+            mostrarError(res ? res.error : "No se recibieron respuestas estructuradas.");
+            return;
+        }
+
+        const tabla = document.getElementById('tabla-auditoria');
+        const tbody = document.getElementById('contenido-tabla');
+        tbody.innerHTML = "";
+
+        const clasesProd = { "Gco": "gco", "Gsm": "gsm", "N93": "n93", "N97": "n97", "GLP": "glp" };
+        
+        let sumOriginal = 0;
+        let sumCompras = 0;
+        let sumVentas = 0;
+        let sumActual = 0;
+
+        for (let i = 1; i <= 8; i++) {
+            const nombre = res.config.nombres[i] || `Tanque ${i}`;
+            const producto = nombre.split('(')[1]?.replace(')', '') || 'Comb';
+
+            let prodKey = "Gco";
+            if (nombre.includes("Gsm")) prodKey = "Gsm";
+            if (nombre.includes("N93")) prodKey = "N93";
+            if (nombre.includes("N97")) prodKey = "N97";
+            if (nombre.includes("GLP")) prodKey = "GLP";
+
+            const claseEstilo = clasesProd[prodKey] || "gco";
+
+            const original = Number(res.inicial[i]) || 0;
+            
+            // FÓRMULA UNIFICADA Y GENÉRICA PARA LAS VENTAS DE AUDITORÍA
+            // Aplica tanto para el Tanque 8 (GLP) como para los líquidos usando las variables procesadas del backend
+            const ventaCalculada = Number(res.ventas[i]) || 0;
+            
+            // CAPTURA DE COMPRAS DESDE EL ACUMULADOR
+            const comprasReales = (res.compras && res.compras[i]) ? Number(res.compras[i]) : 0;
+            const actual = Number(res.actual[i]) || 0;
+
+            sumOriginal += original;
+            sumCompras += comprasReales;
+            sumVentas += ventaCalculada;
+            sumActual += actual;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>Tanque ${i}</strong></td>
+                    <td><span class="tag-prod ${claseEstilo}">${producto}</span></td>
+                    <td class="num">${original.toLocaleString('es-PY')} L</td>
+                    <td class="num" style="color: #22c55e; font-weight: 500;">
+                        ${comprasReales > 0 ? '+ ' + comprasReales.toLocaleString('es-PY') + ' L' : '0 L'}
+                    </td>
+                    <td class="num" style="color: #ef4444;">
+                        ${ventaCalculada > 0 ? '- ' + ventaCalculada.toLocaleString('es-PY') + ' L' : '0 L'}
+                    </td>
+                    <td class="num" style="font-weight: bold; color: ${actual < 0 ? '#f87171' : '#38bdf8'};">
+                        ${Math.round(actual).toLocaleString('es-PY')} L
+                    </td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML += `
+            <tr class="total-row">
+                <td colspan="2">TOTALES GENERALES</td>
+                <td class="num">${sumOriginal.toLocaleString('es-PY')} L</td>
+                <td class="num" style="color: #22c55e;">+ ${sumCompras.toLocaleString('es-PY')} L</td>
+                <td class="num" style="color: #ef4444;">- ${sumVentas.toLocaleString('es-PY')} L</td>
+                <td class="num" style="color: #38bdf8;">${Math.round(sumActual).toLocaleString('es-PY')} L</td>
+            </tr>
+        `;
+
+        tabla.style.display = "table";
+    }
+
+    function mostrarError(msg) {
+        const errorDiv = document.getElementById('tabla-error');
+        errorDiv.innerHTML = `<div class="error-msg"><strong>❌ Error Detectado:</strong><br>${msg}</div>`;
+        errorDiv.style.display = "block";
+    }
+
+    window.onload = cargarAuditoria;
+</script>
+</body>
+</html>
