@@ -14,7 +14,11 @@
             padding-bottom: 60px;
         }
         .container { max-width: 500px; margin: 0 auto; }
-        h1 { text-align: center; color: #38bdf8; font-weight: 300; font-size: 22px; margin-bottom: 20px; }
+        
+        /* Cabecera Corporativa con Link */
+        h1 { text-align: center; font-weight: 300; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        h1 a { color: #38bdf8; text-decoration: none; transition: color 0.2s; }
+        h1 a:hover { color: #60a5fa; }
         
         /* Estilos de Tarjeta */
         .card { 
@@ -28,10 +32,37 @@
         .card.active { display: block; }
         .card-title { font-size: 18px; color: #38bdf8; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
         
-        /* Estructura Estricta de Celdas una sobre otra */
+        /* Estructura Estricta de Celdas */
         .input-group { margin-bottom: 18px; display: flex; flex-direction: column; width: 100%; }
         .input-group label { font-size: 13px; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; }
         
+        /* Distribución en fila para Monto + Concepto Recordatorio */
+        .row-concepto {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        .row-concepto input[type="number"] {
+            flex: 4;
+        }
+        .row-concepto input[type="text"].concepto-memo {
+            flex: 5;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            font-weight: normal;
+            border-radius: 6px;
+            color: #cbd5e1;
+        }
+        .row-concepto input[type="text"].concepto-memo:focus {
+            border-color: #a855f7; /* Color púrpura sutil para diferenciar las notas */
+            background: #131e31;
+            outline: none;
+        }
+
         input[type="number"], input[type="text"] { 
             width: 100%; 
             box-sizing: border-box;
@@ -59,6 +90,40 @@
         .egreso-box { border-left-color: #f87171 !important; }
         .egreso-box strong { color: #f87171 !important; }
 
+        /* Tabla de Revisión Rápida */
+        .review-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px; }
+        .review-table th { color: #94a3b8; text-align: center; padding: 6px; border-bottom: 1px solid #334155; font-size: 11px; text-transform: uppercase; }
+        .review-table td { padding: 8px 4px; border-bottom: 1px solid #1e293b; text-align: center; }
+        .review-table input { padding: 6px !important; font-size: 14px !important; border-radius: 4px !important; }
+
+        /* --- CÓDIGO DE COLORES PARA BADGES --- */
+        .badge { 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            color: #ffffff; 
+            margin-left: 5px; 
+            display: inline-block;
+            text-transform: uppercase;
+        }
+        .badge-table {
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ffffff;
+            display: inline-block;
+            width: 55px;
+            text-align: center;
+        }
+        
+        .bg-gas { background-color: #dc2626 !important; color: #ffffff !important; } /* Rojo */
+        .bg-gco { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #334155; } /* Negro */
+        .bg-gsm { background-color: #64748b !important; color: #ffffff !important; } /* Gris */
+        .bg-n93 { background-color: #eab308 !important; color: #000000 !important; } /* Amarillo */
+        .bg-n97 { background-color: #2563eb !important; color: #ffffff !important; } /* Azul */
+
         /* Botoneras */
         .btn-nav-box { display: flex; gap: 10px; margin-top: 25px; }
         button { 
@@ -71,14 +136,13 @@
         .btn-danger { background: #dc3545; color: white; }
 
         #loader { color: #38bdf8; font-weight: bold; text-align: center; margin-bottom: 15px; font-size: 14px; }
-        .badge { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #f1f5f9; margin-left: 5px; }
         .time-badge { font-family: 'Courier New', monospace; color: #38bdf8; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Surtidor Móvil</h1>
+        <h1><a href="menu.html" target="_self">Ñe'embucu Norte</a></h1>
         <div id="loader">Cargando precios de estación...</div>
 
         <form id="formVentas" onsubmit="event.preventDefault();">
@@ -110,11 +174,11 @@
 
             <div class="card" id="tarjeta_2">
                 <div class="card-title">Precios Vigentes (₲)</div>
-                <div class="input-group"><label>GLP (Gas)</label><input type="number" id="p_glp" oninput="calcular()"></div>
-                <div class="input-group"><label>Nafta 93</label><input type="number" id="p_n93" oninput="calcular()"></div>
-                <div class="input-group"><label>Nafta 97</label><input type="number" id="p_n97" oninput="calcular()"></div>
-                <div class="input-group"><label>Diesel Sm</label><input type="number" id="p_dsm" oninput="calcular()"></div>
-                <div class="input-group"><label>G-Común</label><input type="number" id="p_gco" oninput="calcular()"></div>
+                <div class="input-group"><label>GLP <span class="badge bg-gas">Gas</span></label><input type="number" id="p_glp" oninput="calcular()"></div>
+                <div class="input-group"><label>Nafta 93 <span class="badge bg-n93">N93</span></label><input type="number" id="p_n93" oninput="calcular()"></div>
+                <div class="input-group"><label>Nafta 97 <span class="badge bg-n97">N97</span></label><input type="number" id="p_n97" oninput="calcular()"></div>
+                <div class="input-group"><label>Diesel Sm <span class="badge bg-gsm">GSM</span></label><input type="number" id="p_dsm" oninput="calcular()"></div>
+                <div class="input-group"><label>G-Común <span class="badge bg-gco">GCO</span></label><input type="number" id="p_gco" oninput="calcular()"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(1)">Volver</button>
@@ -125,7 +189,7 @@
             <div class="card" id="tarjeta_3">
                 <div class="card-title">Apertura - Surtidor Gas</div>
                 <div class="input-group">
-                    <label>Totalizador Inicial GLP</label>
+                    <label>Totalizador Inicial <span class="badge bg-gas">Gas</span></label>
                     <input type="number" step="any" id="gas_ini" oninput="calcular()">
                 </div>
                 <div class="btn-nav-box">
@@ -138,14 +202,14 @@
                 <div class="card-title">Apertura - Surtidor 1</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s1b_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s1c_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge">DSm</span></label><input type="number" step="any" id="s1d_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1b_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1c_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1d_ini" oninput="calcular()"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s1e_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s1f_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge">DSm</span></label><input type="number" step="any" id="s1g_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1e_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1f_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1g_ini" oninput="calcular()"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(3)">Volver</button>
@@ -157,14 +221,14 @@
                 <div class="card-title">Apertura - Surtidor 2</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s2b_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s2c_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge">GCO</span></label><input type="number" step="any" id="s2d_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2b_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2c_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2d_ini" oninput="calcular()"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s2e_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s2f_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge">GCO</span></label><input type="number" step="any" id="s2g_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2e_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2f_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2g_ini" oninput="calcular()"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(4)">Volver</button>
@@ -187,7 +251,7 @@
             <div class="card" id="tarjeta_7">
                 <div class="card-title">Cierre - Surtidor Gas</div>
                 <div class="input-group">
-                    <label>Totalizador Cierre GLP</label>
+                    <label>Totalizador Cierre <span class="badge bg-gas">Gas</span></label>
                     <input type="number" step="any" id="gas_cie" oninput="calcular()">
                 </div>
                 <div class="calc-row"><span>Litros Vendidos:</span><strong id="view_lts_gas">0.00</strong></div>
@@ -203,14 +267,14 @@
                 <div class="card-title">Cierre - Surtidor 1</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s1b_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s1c_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge">DSm</span></label><input type="number" step="any" id="s1d_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1b_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1c_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1d_cie" oninput="calcular()"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s1e_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s1f_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge">DSm</span></label><input type="number" step="any" id="s1g_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1e_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1f_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1g_cie" oninput="calcular()"></div>
                 
                 <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S1 Acumulado:</span><strong id="view_imp_s1_top">0</strong></div>
                 
@@ -224,14 +288,14 @@
                 <div class="card-title">Cierre - Surtidor 2</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s2b_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s2c_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge">GCO</span></label><input type="number" step="any" id="s2d_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2b_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2c_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2d_cie" oninput="calcular()"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s2e_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s2f_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge">GCO</span></label><input type="number" step="any" id="s2g_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2e_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2f_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2g_cie" oninput="calcular()"></div>
                 
                 <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S2 Acumulado:</span><strong id="view_imp_s2_top">0</strong></div>
                 
@@ -242,13 +306,25 @@
             </div>
 
             <div class="card" id="tarjeta_10">
-                <div class="card-title">Panel de Ingresos (₲)</div>
+                <div class="card-title">Panel de Ingresos</div>
                 <div class="calc-row"><span>Venta Gas Mapeada:</span><strong id="ing_gas_map">0</strong></div>
                 <div class="calc-row"><span>Venta S1 Mapeada:</span><strong id="ing_s1_map">0</strong></div>
                 <div class="calc-row"><span>Venta S2 Mapeada:</span><strong id="ing_s2_map">0</strong></div>
                 
-                <div class="input-group" style="margin-top:15px;"><label>Otros Ingresos 1 (Lubricantes/Otros)</label><input type="number" id="ing_val_1" class="ing-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Otros Ingresos 2</label><input type="number" id="ing_val_2" class="ing-val" oninput="calcular()"></div>
+                <div class="input-group" style="margin-top:15px;">
+                    <label>Otros Ingresos 1 (Lubricantes/Otros)</label>
+                    <div class="row-concepto">
+                        <input type="number" id="ing_val_1" class="ing-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_ing_1" class="concepto-memo" placeholder="¿Concepto? Ej: Sencillo en caja">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Otros Ingresos 2</label>
+                    <div class="row-concepto">
+                        <input type="number" id="ing_val_2" class="ing-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_ing_2" class="concepto-memo" placeholder="¿Concepto? Ej: venta de hielo">
+                    </div>
+                </div>
                 
                 <div class="calc-row ingreso-box" style="margin-top:15px;"><span>TOTAL INGRESOS:</span><strong id="total_ingresos_view">0</strong></div>
                 
@@ -260,26 +336,130 @@
 
             <div class="card" id="tarjeta_11">
                 <div class="card-title" id="egr_title">Panel de Egresos / Vales (₲)</div>
-                <div class="input-group"><label>Vale 1</label><input type="number" id="egr_1" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 2</label><input type="number" id="egr_2" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 3</label><input type="number" id="egr_3" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 4</label><input type="number" id="egr_4" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 5</label><input type="number" id="egr_5" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 6</label><input type="number" id="egr_6" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 7</label><input type="number" id="egr_7" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 8</label><input type="number" id="egr_8" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 9</label><input type="number" id="egr_9" class="egr-val" oninput="calcular()"></div>
-                <div class="input-group"><label>Vale 10</label><input type="number" id="egr_10" class="egr-val" oninput="calcular()"></div>
+                
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_1" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_1" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_2" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_2" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_3" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_3" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_4" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_4" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_5" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_5" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_6" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_6" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_7" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_7" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_8" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_8" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_9" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_9" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
+                <div class="input-group">
+                    
+                    <div class="row-concepto">
+                        <input type="number" id="egr_10" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" id="memo_egr_10" class="concepto-memo" placeholder="¿Concepto?">
+                    </div>
+                </div>
                 
                 <div class="calc-row egr-box" style="margin-top:15px;"><span>TOTAL EGRESOS:</span><strong id="total_egresos_view">0</strong></div>
                 
                 <div class="btn-nav-box" id="nav_cierre_normal">
                     <button type="button" class="btn-back" onclick="irA(10)">Volver</button>
-                    <button type="button" class="btn-next" onclick="irA(12)">Siguiente</button>
+                    <button type="button" class="btn-next" onclick="irA(13)">Siguiente</button>
                 </div>
                 <div id="nav_egreso_rapido" style="display:none; margin-top:15px;">
                     <button type="button" class="btn-save" style="background:#38bdf8; color:#0f172a;" onclick="guardarEgresoRapido()">GUARDAR VALE PROVISORIO</button>
                     <button type="button" class="btn-back" style="width:100%; margin-top:10px;" onclick="irA(1)">VOLVER AL MENU</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_13">
+                <div class="card-title">Corroborar Lecturas</div>
+                <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 15px;">
+                    Revisá que no haya errores de tipeo. Podés modificar cualquier número acá mismo y se recalculará al instante.
+                </p>
+                
+                <div style="overflow-x: auto;">
+                    <table class="review-table">
+                        <thead>
+                            <tr>
+                                <th>Pico</th>
+                                <th>Inicial</th>
+                                <th>Cierre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge-table bg-gas">Gas</span></td>
+                                <td><input type="number" step="any" id="rev_gas_ini" oninput="sincronizarReview('gas_ini', this.value)"></td>
+                                <td><input type="number" step="any" id="rev_gas_cie" oninput="sincronizarReview('gas_cie', this.value)"></td>
+                            </tr>
+                            <tr><td><span class="badge-table bg-n93">S1-B</span></td><td><input type="number" step="any" id="rev_s1b_ini" oninput="sincronizarReview('s1b_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1b_cie" oninput="sincronizarReview('s1b_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S1-C</span></td><td><input type="number" step="any" id="rev_s1c_ini" oninput="sincronizarReview('s1c_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1c_cie" oninput="sincronizarReview('s1c_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gsm">S1-D</span></td><td><input type="number" step="any" id="rev_s1d_ini" oninput="sincronizarReview('s1d_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1d_cie" oninput="sincronizarReview('s1d_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S1-E</span></td><td><input type="number" step="any" id="rev_s1e_ini" oninput="sincronizarReview('s1e_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1e_cie" oninput="sincronizarReview('s1e_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S1-F</span></td><td><input type="number" step="any" id="rev_s1f_ini" oninput="sincronizarReview('s1f_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1f_cie" oninput="sincronizarReview('s1f_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gsm">S1-G</span></td><td><input type="number" step="any" id="rev_s1g_ini" oninput="sincronizarReview('s1g_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1g_cie" oninput="sincronizarReview('s1g_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S2-B</span></td><td><input type="number" step="any" id="rev_s2b_ini" oninput="sincronizarReview('s2b_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2b_cie" oninput="sincronizarReview('s2b_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S2-C</span></td><td><input type="number" step="any" id="rev_s2c_ini" oninput="sincronizarReview('s2c_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2c_cie" oninput="sincronizarReview('s2c_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gco">S2-D</span></td><td><input type="number" step="any" id="rev_s2d_ini" oninput="sincronizarReview('s2d_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2d_cie" oninput="sincronizarReview('s2d_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S2-E</span></td><td><input type="number" step="any" id="rev_s2e_ini" oninput="sincronizarReview('s2e_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2e_cie" oninput="sincronizarReview('s2e_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S2-F</span></td><td><input type="number" step="any" id="rev_s2f_ini" oninput="sincronizarReview('s2f_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2f_cie" oninput="sincronizarReview('s2f_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gco">S2-G</span></td><td><input type="number" step="any" id="rev_s2g_ini" oninput="sincronizarReview('s2g_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2g_cie" oninput="sincronizarReview('s2g_cie', this.value)"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(11)">Volver</button>
+                    <button type="button" class="btn-next" style="background: #4ade80; color: #0f172a;" onclick="irA(12)">Todo Correcto ➔</button>
                 </div>
             </div>
 
@@ -299,7 +479,7 @@
                 </div>
 
                 <button type="button" onclick="enviarARegistros()" id="btn_save" class="btn-save">ENVIAR CIERRE A REGISTROS</button>
-                <button type="button" class="btn-back" style="width:100%; margin-top:10px;" onclick="irA(11)">Volver</button>
+                <button type="button" class="btn-back" style="width:100%; margin-top:10px;" onclick="irA(13)">Volver a Revisar</button>
             </div>
 
         </form>
@@ -319,6 +499,9 @@
         const target = document.getElementById(`tarjeta_${num}`);
         if(target) target.classList.add('active');
         
+        if(num === 13) {
+            poblarCamposDeAuditoria();
+        }
         if(num === 12) {
             const ahora = new Date();
             document.getElementById('view_hora_cie_auto').innerText = ahora.toLocaleTimeString('es-PY', {hour: '2-digit', minute:'2-digit'});
@@ -326,15 +509,37 @@
         window.scrollTo(0,0);
     }
 
-    // El evento 'input' ahora es seguro: SÓLO guarda si el usuario tipea activamente
-    document.getElementById('formVentas').addEventListener('input', (e) => {
+    function sincronizarReview(idOriginal, valor) {
+        let el = document.getElementById(idOriginal);
+        if(el) el.value = valor;
+        calcular();
         guardarEstadoActualEnLocalStorage();
+    }
+
+    function poblarCamposDeAuditoria() {
+        const ids = [
+            'gas_ini','gas_cie',
+            's1b_ini','s1b_cie','s1c_ini','s1c_cie','s1d_ini','s1d_cie','s1e_ini','s1e_cie','s1f_ini','s1f_cie','s1g_ini','s1g_cie',
+            's2b_ini','s2b_cie','s2c_ini','s2c_cie','s2d_ini','s2d_cie','s2e_ini','s2e_cie','s2f_ini','s2f_cie','s2g_ini','s2g_cie'
+        ];
+        ids.forEach(id => {
+            let idReview = 'rev_' + id;
+            const elReview = document.getElementById(idReview);
+            const elOriginal = document.getElementById(id);
+            if(elReview && elOriginal) elReview.value = elOriginal.value;
+        });
+    }
+
+    document.getElementById('formVentas').addEventListener('input', (e) => {
+        if(!e.target.id.startsWith('rev_')) {
+            guardarEstadoActualEnLocalStorage();
+        }
     });
 
     window.onload = async function() {
         irA(1);
-        recuperarInicioLocalSilencioso(); // Carga automática de operador e inputs inmediatamente
-        verificarEstadoTurnoLocal();     // Verifica y bloquea el botón de apertura
+        recuperarInicioLocalSilencioso(); 
+        verificarEstadoTurnoLocal();     
         await cargarPreciosCentrales();
     };
 
@@ -346,7 +551,6 @@
         const alertaLocal = document.getElementById('alerta_local');
 
         if (localData) {
-            // Deshabilitar completamente la apertura
             btnInicio.disabled = true;
             btnInicio.style.opacity = "0.3";
             btnInicio.style.cursor = "not-allowed";
@@ -357,7 +561,6 @@
             btnEgreso.style.opacity = "1";
             alertaLocal.style.display = "block";
         } else {
-            // Permitir apertura
             btnInicio.disabled = false;
             btnInicio.style.opacity = "1";
             btnInicio.style.cursor = "pointer";
@@ -397,7 +600,6 @@
             return;
         }
 
-        // Guardar explícitamente al seleccionar ruta para asentar el Operador
         guardarEstadoActualEnLocalStorage();
 
         if (tipo === 'inicio') {
@@ -409,7 +611,7 @@
             irA(2);
         } else if (tipo === 'cierre') {
             modoEgresoRapidoActivo = false;
-            document.getElementById('egr_title').innerText = "Panel de Egresos / Vales (₲)";
+            document.getElementById('egr_title').innerText = "Panel de Egresos";
             document.getElementById('nav_cierre_normal').style.display = "flex";
             document.getElementById('nav_egreso_rapido').style.display = "none";
             irA(7);
@@ -426,13 +628,11 @@
         const campos = {};
         const inputs = document.querySelectorAll('#formVentas input');
         inputs.forEach(i => {
-            // Solo guardamos si el input tiene datos para evitar sobreescribir con blancos en ejecuciones cruzadas
-            if (i.value !== "") {
+            if (i.value !== "" && !i.id.startsWith('rev_')) {
                 campos[i.id] = i.value;
             }
         });
 
-        // Si ya había cosas guardadas, hacemos un merge para no perder los inputs ocultos
         let viejoRaw = localStorage.getItem('turno_movil_datos');
         if (viejoRaw) {
             try {
@@ -492,7 +692,6 @@
             datosLocales = JSON.parse(localStorage.getItem('turno_movil_datos')) || {};
         } catch(e) {}
 
-        // Lee de forma estricta: Prioriza el DOM; si está vacío u oculto, va al localStorage
         const obtenerValorFiel = (id) => {
             let el = document.getElementById(id);
             if (el && el.value !== "") return parseFloat(el.value) || 0;
@@ -523,17 +722,18 @@
 
         // --- SURTIDOR 1 ---
         let s1_tot = 0;
-        const picos = ['b','c','d','e','f','g'];
+        const picos = ['B', 'C', 'D', 'E', 'F', 'G'];
         picos.forEach(p => {
-            let ini = obtenerValorFiel(`s1${p}_ini`);
-            let cie = obtenerValorFiel(`s1${p}_cie`);
+            let pMin = p.toLowerCase();
+            let ini = obtenerValorFiel(`s1${pMin}_ini`);
+            let cie = obtenerValorFiel(`s1${pMin}_cie`);
             let lts = 0;
             
-            if (tieneValorCierre(`s1${p}_cie`) && cie > ini) {
+            if (tieneValorCierre(`s1${pMin}_cie`) && cie > ini) {
                 lts = cie - ini;
             }
             
-            let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.dsm);
+            let precio = (p=='B'||p=='E') ? precios.n93 : (p=='C'||p=='F' ? precios.n97 : precios.dsm);
             s1_tot += (lts * precio);
         });
         document.getElementById('view_imp_s1_top').innerText = f(s1_tot);
@@ -542,15 +742,16 @@
         // --- SURTIDOR 2 ---
         let s2_tot = 0;
         picos.forEach(p => {
-            let ini = obtenerValorFiel(`s2${p}_ini`);
-            let cie = obtenerValorFiel(`s2${p}_cie`);
+            let pMin = p.toLowerCase();
+            let ini = obtenerValorFiel(`s2${pMin}_ini`);
+            let cie = obtenerValorFiel(`s2${pMin}_cie`);
             let lts = 0;
             
-            if (tieneValorCierre(`s2${p}_cie`) && cie > ini) {
+            if (tieneValorCierre(`s2${pMin}_cie`) && cie > ini) {
                 lts = cie - ini;
             }
             
-            let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.gco);
+            let precio = (p=='B'||p=='E') ? precios.n93 : (p=='C'||p=='F' ? precios.n97 : precios.gco);
             s2_tot += (lts * precio);
         });
         document.getElementById('view_imp_s2_top').innerText = f(s2_tot);
@@ -607,7 +808,7 @@
             s2f_ini: v('s2f_ini'), s2f_cie: v('s2f_cie'), s2g_ini: v('s2g_ini'), s2g_cie: v('s2g_cie'),
             total_ingresos: document.getElementById('total_ingresos_view').innerText.replace(/\./g,''),
             total_egresos: document.getElementById('total_egresos_view').innerText.replace(/\./g,''),
-            saldo: document.getElementById('view_saldo').innerText.replace(' ₲','').replace(/\./g,'')
+            saldo: document.getElementById('view_saldo').innerText.replace(/\./g,'').replace(' ₲','')
         };
 
         for (let i = 1; i <= 10; i++) {
