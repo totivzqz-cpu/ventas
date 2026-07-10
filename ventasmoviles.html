@@ -307,22 +307,22 @@
 
             <div class="card" id="tarjeta_10">
                 <div class="card-title">Panel de Ingresos</div>
-                <div class="calc-row"><span>Venta Gas Mapeada:</span><strong id="ing_gas_map">0</strong></div>
-                <div class="calc-row"><span>Venta S1 Mapeada:</span><strong id="ing_s1_map">0</strong></div>
-                <div class="calc-row"><span>Venta S2 Mapeada:</span><strong id="ing_s2_map">0</strong></div>
+                <div class="calc-row"><span>Venta Gas:</span><strong id="ing_gas_map">0</strong></div>
+                <div class="calc-row"><span>Venta Surtidor 1:</span><strong id="ing_s1_map">0</strong></div>
+                <div class="calc-row"><span>Venta Surtidor 2:</span><strong id="ing_s2_map">0</strong></div>
                 
                 <div class="input-group" style="margin-top:15px;">
                     <label>Otros Ingresos 1 (Lubricantes/Otros)</label>
                     <div class="row-concepto">
                         <input type="text" inputmode="numeric" id="ing_val_1" class="ing-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
-                        <input type="text" id="memo_ing_1" class="concepto-memo" placeholder="¿Concepto? Ej: Sencillo en caja">
+                        <input type="text" id="memo_ing_1" class="concepto-memo" placeholder="¿Concepto? Ej: Sencillo">
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Otros Ingresos 2</label>
                     <div class="row-concepto">
                         <input type="text" inputmode="numeric" id="ing_val_2" class="ing-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
-                        <input type="text" id="memo_ing_2" class="concepto-memo" placeholder="¿Concepto? Ej: venta de hielo">
+                        <input type="text" id="memo_ing_2" class="concepto-memo" placeholder="¿Concepto? Ej: hielo">
                     </div>
                 </div>
                 
@@ -627,7 +627,7 @@
             irA(7);
         } else if (tipo === 'egreso') {
             modoEgresoRapidoActivo = true;
-            document.getElementById('egr_title').innerText = "Carga Rápida de Egreso (Modo Turno)";
+            document.getElementById('egr_title').innerText = "Carga de Egresos";
             document.getElementById('nav_cierre_normal').style.display = "none";
             document.getElementById('nav_egreso_rapido').style.display = "block";
             irA(11);
