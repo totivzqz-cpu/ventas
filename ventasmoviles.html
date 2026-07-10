@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ventas - Móvil</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #0f172a; 
+            color: #f1f5f9; 
+            padding: 15px; 
+            margin: 0; 
+            padding-bottom: 60px;
+        }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 { text-align: center; color: #38bdf8; font-weight: 300; font-size: 22px; margin-bottom: 20px; }
+        
+        /* Estilos de Tarjeta */
+        .card { 
+            background: #1e293b; 
+            border-radius: 8px; 
+            padding: 20px; 
+            border: 1px solid #334155; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            display: none; 
+        }
+        .card.active { display: block; }
+        .card-title { font-size: 18px; color: #38bdf8; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        
+        /* Estructura Estricta de Celdas una sobre otra */
+        .input-group { margin-bottom: 18px; display: flex; flex-direction: column; width: 100%; }
+        .input-group label { font-size: 13px; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; }
+        
+        input[type="number"], input[type="text"] { 
+            width: 100%; 
+            box-sizing: border-box;
+            border: 1px solid #334155; 
+            border-radius: 6px;
+            background: #0f172a; 
+            color: #ffffff;
+            padding: 14px;
+            text-align: center; 
+            font-size: 16px; 
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+        input:focus { outline: none; border-color: #38bdf8; background: #131e31; }
+        
+        .pico-header { font-size: 14px; color: #38bdf8; font-weight: bold; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px dashed #334155; padding-bottom: 4px; text-transform: uppercase; }
+
+        /* Filas de totales calculados */
+        .calc-row { display: flex; justify-content: space-between; background: #1e2942; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #38bdf8; }
+        .calc-row span { font-size: 13px; color: #94a3b8; }
+        .calc-row strong { font-family: 'Courier New', monospace; font-size: 15px; color: #38bdf8; }
+
+        .ingreso-box { border-left-color: #4ade80 !important; }
+        .ingreso-box strong { color: #4ade80 !important; }
+        .egreso-box { border-left-color: #f87171 !important; }
+        .egreso-box strong { color: #f87171 !important; }
+
+        /* Botoneras */
+        .btn-nav-box { display: flex; gap: 10px; margin-top: 25px; }
+        button { 
+            flex: 1; padding: 14px; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; transition: all 0.2s; 
+        }
+        .btn-next { background: #38bdf8; color: #0f172a; }
+        .btn-back { background: #475569; color: white; }
+        .btn-save { background: #198754; color: white; width: 100%; margin-top: 20px; font-size: 16px; padding: 16px; }
+        .btn-action { background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; margin-bottom: 12px; width: 100%; text-align: left; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; }
+        .btn-danger { background: #dc3545; color: white; }
+
+        #loader { color: #38bdf8; font-weight: bold; text-align: center; margin-bottom: 15px; font-size: 14px; }
+        .badge { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #f1f5f9; margin-left: 5px; }
+        .time-badge { font-family: 'Courier New', monospace; color: #38bdf8; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Surtidor Móvil</h1>
+        <div id="loader">Cargando precios de estación...</div>
+
+        <form id="formVentas" onsubmit="event.preventDefault();">
+            
+            <div class="card" id="tarjeta_1">
+                <div class="card-title">Registro de Turno</div>
+                <div class="input-group">
+                    <label>Nombre del Operador</label>
+                    <input type="text" id="operador" placeholder="Ej: Juan Pérez">
+                </div>
+                
+                <div id="opciones_turno" style="margin-top: 20px;">
+                    <button type="button" class="btn-action" id="btn_ruta_inicio" onclick="seleccionarRuta('inicio')">
+                        <span>1. Registrar Apertura / Inicio</span> ➔
+                    </button>
+                    <button type="button" class="btn-action" id="btn_ruta_cierre" onclick="seleccionarRuta('cierre')">
+                        <span>2. Registrar Cierre de Turno</span> ➔
+                    </button>
+                    <button type="button" class="btn-action" id="btn_ruta_egreso" onclick="seleccionarRuta('egreso')">
+                        <span>3. Cargar Egreso / Vale Rápido</span> ➔
+                    </button>
+                </div>
+
+                <div id="alerta_local" style="display:none; background:#1e2942; padding:12px; border-radius:6px; margin-top:15px; border:1px solid #334155; text-align:center;">
+                    <p style="margin:0 0 5px 0; font-size:13px; color:#4ade80;">✔ Datos cargados automáticamente desde la memoria local.</p>
+                    <button type="button" style="padding:6px 12px; font-size:12px; margin-top:5px;" class="btn-danger" onclick="borrarInicioLocal()">Iniciar Turno Nuevo</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_2">
+                <div class="card-title">Precios Vigentes (₲)</div>
+                <div class="input-group"><label>GLP (Gas)</label><input type="number" id="p_glp" oninput="calcular()"></div>
+                <div class="input-group"><label>Nafta 93</label><input type="number" id="p_n93" oninput="calcular()"></div>
+                <div class="input-group"><label>Nafta 97</label><input type="number" id="p_n97" oninput="calcular()"></div>
+                <div class="input-group"><label>Diesel Sm</label><input type="number" id="p_dsm" oninput="calcular()"></div>
+                <div class="input-group"><label>G-Común</label><input type="number" id="p_gco" oninput="calcular()"></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(1)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(3)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_3">
+                <div class="card-title">Apertura - Surtidor Gas</div>
+                <div class="input-group">
+                    <label>Totalizador Inicial GLP</label>
+                    <input type="number" step="any" id="gas_ini" oninput="calcular()">
+                </div>
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(2)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(4)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_4">
+                <div class="card-title">Apertura - Surtidor 1</div>
+                
+                <div class="pico-header">Lado A</div>
+                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s1b_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s1c_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge">DSm</span></label><input type="number" step="any" id="s1d_ini" oninput="calcular()"></div>
+                
+                <div class="pico-header">Lado B</div>
+                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s1e_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s1f_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge">DSm</span></label><input type="number" step="any" id="s1g_ini" oninput="calcular()"></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(3)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(5)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_5">
+                <div class="card-title">Apertura - Surtidor 2</div>
+                
+                <div class="pico-header">Lado A</div>
+                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s2b_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s2c_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge">GCO</span></label><input type="number" step="any" id="s2d_ini" oninput="calcular()"></div>
+                
+                <div class="pico-header">Lado B</div>
+                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s2e_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s2f_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge">GCO</span></label><input type="number" step="any" id="s2g_ini" oninput="calcular()"></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(4)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(6)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_6">
+                <div class="card-title">¡Apertura Registrada!</div>
+                <p style="text-align:center; font-size:14px; color:#94a3b8; line-height:1.5;">
+                    Los totalizadores iniciales y la hora del sistema se han fijado localmente en este dispositivo.
+                </p>
+                <div style="background:#0f172a; padding:15px; border-radius:6px; border:1px solid #334155; margin-bottom:20px; text-align:center;">
+                    <div style="font-size:13px; color:#94a3b8; margin-bottom:5px;">HORA DE APERTURA REGISTRADA:</div>
+                    <div id="view_hora_ap" class="time-badge" style="font-size:22px;">00:00</div>
+                </div>
+                <button type="button" class="btn-next" style="width:100%;" onclick="finalizarTarjetaInicio()">Cerrar Aplicación</button>
+            </div>
+
+            <div class="card" id="tarjeta_7">
+                <div class="card-title">Cierre - Surtidor Gas</div>
+                <div class="input-group">
+                    <label>Totalizador Cierre GLP</label>
+                    <input type="number" step="any" id="gas_cie" oninput="calcular()">
+                </div>
+                <div class="calc-row"><span>Litros Vendidos:</span><strong id="view_lts_gas">0.00</strong></div>
+                <div class="calc-row ingreso-box"><span>Importe GLP:</span><strong id="view_val_gas">0</strong></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(1)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(8)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_8">
+                <div class="card-title">Cierre - Surtidor 1</div>
+                
+                <div class="pico-header">Lado A</div>
+                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s1b_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s1c_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge">DSm</span></label><input type="number" step="any" id="s1d_cie" oninput="calcular()"></div>
+                
+                <div class="pico-header">Lado B</div>
+                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s1e_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s1f_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge">DSm</span></label><input type="number" step="any" id="s1g_cie" oninput="calcular()"></div>
+                
+                <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S1 Acumulado:</span><strong id="view_imp_s1_top">0</strong></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(7)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(9)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_9">
+                <div class="card-title">Cierre - Surtidor 2</div>
+                
+                <div class="pico-header">Lado A</div>
+                <div class="input-group"><label>Pico B <span class="badge">N93</span></label><input type="number" step="any" id="s2b_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico C <span class="badge">N97</span></label><input type="number" step="any" id="s2c_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico D <span class="badge">GCO</span></label><input type="number" step="any" id="s2d_cie" oninput="calcular()"></div>
+                
+                <div class="pico-header">Lado B</div>
+                <div class="input-group"><label>Pico E <span class="badge">N93</span></label><input type="number" step="any" id="s2e_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico F <span class="badge">N97</span></label><input type="number" step="any" id="s2f_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico G <span class="badge">GCO</span></label><input type="number" step="any" id="s2g_cie" oninput="calcular()"></div>
+                
+                <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S2 Acumulado:</span><strong id="view_imp_s2_top">0</strong></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(8)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(10)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_10">
+                <div class="card-title">Panel de Ingresos (₲)</div>
+                <div class="calc-row"><span>Venta Gas Mapeada:</span><strong id="ing_gas_map">0</strong></div>
+                <div class="calc-row"><span>Venta S1 Mapeada:</span><strong id="ing_s1_map">0</strong></div>
+                <div class="calc-row"><span>Venta S2 Mapeada:</span><strong id="ing_s2_map">0</strong></div>
+                
+                <div class="input-group" style="margin-top:15px;"><label>Otros Ingresos 1 (Lubricantes/Otros)</label><input type="number" id="ing_val_1" class="ing-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Otros Ingresos 2</label><input type="number" id="ing_val_2" class="ing-val" oninput="calcular()"></div>
+                
+                <div class="calc-row ingreso-box" style="margin-top:15px;"><span>TOTAL INGRESOS:</span><strong id="total_ingresos_view">0</strong></div>
+                
+                <div class="btn-nav-box">
+                    <button type="button" class="btn-back" onclick="irA(9)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(11)">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_11">
+                <div class="card-title" id="egr_title">Panel de Egresos / Vales (₲)</div>
+                <div class="input-group"><label>Vale 1</label><input type="number" id="egr_1" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 2</label><input type="number" id="egr_2" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 3</label><input type="number" id="egr_3" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 4</label><input type="number" id="egr_4" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 5</label><input type="number" id="egr_5" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 6</label><input type="number" id="egr_6" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 7</label><input type="number" id="egr_7" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 8</label><input type="number" id="egr_8" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 9</label><input type="number" id="egr_9" class="egr-val" oninput="calcular()"></div>
+                <div class="input-group"><label>Vale 10</label><input type="number" id="egr_10" class="egr-val" oninput="calcular()"></div>
+                
+                <div class="calc-row egr-box" style="margin-top:15px;"><span>TOTAL EGRESOS:</span><strong id="total_egresos_view">0</strong></div>
+                
+                <div class="btn-nav-box" id="nav_cierre_normal">
+                    <button type="button" class="btn-back" onclick="irA(10)">Volver</button>
+                    <button type="button" class="btn-next" onclick="irA(12)">Siguiente</button>
+                </div>
+                <div id="nav_egreso_rapido" style="display:none; margin-top:15px;">
+                    <button type="button" class="btn-save" style="background:#38bdf8; color:#0f172a;" onclick="guardarEgresoRapido()">GUARDAR VALE PROVISORIO</button>
+                    <button type="button" class="btn-back" style="width:100%; margin-top:10px;" onclick="irA(1)">VOLVER AL MENU</button>
+                </div>
+            </div>
+
+            <div class="card" id="tarjeta_12">
+                <div class="card-title">Resumen de Caja Final</div>
+                <div class="calc-row ingreso-box"><span>(+) Ingresos Totales:</span><strong id="res_ing">0</strong></div>
+                <div class="calc-row egr-box"><span>(-) Egresos Totales:</span><strong id="res_egr">0</strong></div>
+                
+                <div style="text-align:center; margin:25px 0; padding:15px; background:#0f172a; border-radius:8px; border:1px solid #334155;">
+                    <div style="font-size:14px; color:#94a3b8; margin-bottom:5px;">SALDO CAJA CHICA:</div>
+                    <div id="view_saldo" style="font-size:26px; color:#38bdf8; font-weight:bold; font-family:monospace;">0</div>
+                </div>
+
+                <div style="background:#1e2942; padding:15px; border-radius:6px; border:1px solid #334155; margin-bottom:20px; text-align:center;">
+                    <div style="font-size:13px; color:#94a3b8; margin-bottom:5px;">HORA DE CIERRE ACTUAL AUTOMÁTICA:</div>
+                    <div id="view_hora_cie_auto" class="time-badge" style="font-size:22px;">00:00</div>
+                </div>
+
+                <button type="button" onclick="enviarARegistros()" id="btn_save" class="btn-save">ENVIAR CIERRE A REGISTROS</button>
+                <button type="button" class="btn-back" style="width:100%; margin-top:10px;" onclick="irA(11)">Volver</button>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+    const URL_PRECIOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSCKQEKHrZ7SNE2BzzQj2LK3iboq83UQJ29DkTpPPziS0QZJ5WL30YqDk08rBGdJTHCy-dcCbWRP1HB/pub?gid=226703914&single=true&output=csv';
+    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec';
+
+    let precios = { gco: 0, dsm: 0, n93: 0, n97: 0, glp: 0 };
+    let modoEgresoRapidoActivo = false;
+
+    function f(n) { return Math.round(n).toLocaleString('es-PY'); }
+
+    function irA(num) {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        const target = document.getElementById(`tarjeta_${num}`);
+        if(target) target.classList.add('active');
+        
+        if(num === 12) {
+            const ahora = new Date();
+            document.getElementById('view_hora_cie_auto').innerText = ahora.toLocaleTimeString('es-PY', {hour: '2-digit', minute:'2-digit'});
+        }
+        window.scrollTo(0,0);
+    }
+
+    // El evento 'input' ahora es seguro: SÓLO guarda si el usuario tipea activamente
+    document.getElementById('formVentas').addEventListener('input', (e) => {
+        guardarEstadoActualEnLocalStorage();
+    });
+
+    window.onload = async function() {
+        irA(1);
+        recuperarInicioLocalSilencioso(); // Carga automática de operador e inputs inmediatamente
+        verificarEstadoTurnoLocal();     // Verifica y bloquea el botón de apertura
+        await cargarPreciosCentrales();
+    };
+
+    function verificarEstadoTurnoLocal() {
+        const localData = localStorage.getItem('turno_movil_datos');
+        const btnInicio = document.getElementById('btn_ruta_inicio');
+        const btnCierre = document.getElementById('btn_ruta_cierre');
+        const btnEgreso = document.getElementById('btn_ruta_egreso');
+        const alertaLocal = document.getElementById('alerta_local');
+
+        if (localData) {
+            // Deshabilitar completamente la apertura
+            btnInicio.disabled = true;
+            btnInicio.style.opacity = "0.3";
+            btnInicio.style.cursor = "not-allowed";
+            
+            btnCierre.disabled = false;
+            btnCierre.style.opacity = "1";
+            btnEgreso.disabled = false;
+            btnEgreso.style.opacity = "1";
+            alertaLocal.style.display = "block";
+        } else {
+            // Permitir apertura
+            btnInicio.disabled = false;
+            btnInicio.style.opacity = "1";
+            btnInicio.style.cursor = "pointer";
+            
+            btnCierre.disabled = true;
+            btnCierre.style.opacity = "0.4";
+            btnEgreso.disabled = true;
+            btnEgreso.style.opacity = "0.4";
+            alertaLocal.style.display = "none";
+        }
+    }
+
+    async function cargarPreciosCentrales() {
+        try {
+            const res = await fetch(URL_PRECIOS);
+            const data = await res.text();
+            const p = data.split(',').map(v => parseFloat(v.trim()) || 0);
+            precios = { gco: p[0], dsm: p[1], n93: p[2], n97: p[3], glp: p[4] };
+            
+            document.getElementById('p_glp').value = precios.glp;
+            document.getElementById('p_n93').value = precios.n93;
+            document.getElementById('p_n97').value = precios.n97;
+            document.getElementById('p_dsm').value = precios.dsm;
+            document.getElementById('p_gco').value = precios.gco;
+            
+            document.getElementById('loader').style.display = 'none';
+            calcular();
+        } catch (e) { 
+            document.getElementById('loader').innerText = "Error leyendo lista de precios."; 
+        }
+    }
+
+    function seleccionarRuta(tipo) {
+        const op = document.getElementById('operador').value.trim();
+        if(!op) {
+            alert("Por favor, introduce el nombre del operador primero.");
+            return;
+        }
+
+        // Guardar explícitamente al seleccionar ruta para asentar el Operador
+        guardarEstadoActualEnLocalStorage();
+
+        if (tipo === 'inicio') {
+            const ahora = new Date();
+            const horaStr = ahora.toLocaleTimeString('es-PY', {hour: '2-digit', minute:'2-digit'});
+            localStorage.setItem('turno_movil_hora_ap', horaStr);
+            document.getElementById('view_hora_ap').innerText = horaStr;
+            modoEgresoRapidoActivo = false;
+            irA(2);
+        } else if (tipo === 'cierre') {
+            modoEgresoRapidoActivo = false;
+            document.getElementById('egr_title').innerText = "Panel de Egresos / Vales (₲)";
+            document.getElementById('nav_cierre_normal').style.display = "flex";
+            document.getElementById('nav_egreso_rapido').style.display = "none";
+            irA(7);
+        } else if (tipo === 'egreso') {
+            modoEgresoRapidoActivo = true;
+            document.getElementById('egr_title').innerText = "Carga Rápida de Egreso (Modo Turno)";
+            document.getElementById('nav_cierre_normal').style.display = "none";
+            document.getElementById('nav_egreso_rapido').style.display = "block";
+            irA(11);
+        }
+    }
+
+    function guardarEstadoActualEnLocalStorage() {
+        const campos = {};
+        const inputs = document.querySelectorAll('#formVentas input');
+        inputs.forEach(i => {
+            // Solo guardamos si el input tiene datos para evitar sobreescribir con blancos en ejecuciones cruzadas
+            if (i.value !== "") {
+                campos[i.id] = i.value;
+            }
+        });
+
+        // Si ya había cosas guardadas, hacemos un merge para no perder los inputs ocultos
+        let viejoRaw = localStorage.getItem('turno_movil_datos');
+        if (viejoRaw) {
+            try {
+                let viejoJson = JSON.parse(viejoRaw);
+                Object.assign(viejoJson, campos);
+                localStorage.setItem('turno_movil_datos', JSON.stringify(viejoJson));
+                return;
+            } catch(e){}
+        }
+        localStorage.setItem('turno_movil_datos', JSON.stringify(campos));
+    }
+
+    function recuperarInicioLocalSilencioso() {
+        const raw = localStorage.getItem('turno_movil_datos');
+        if(!raw) return;
+        try {
+            const campos = JSON.parse(raw);
+            for(let id in campos) {
+                const el = document.getElementById(id);
+                if(el) el.value = campos[id];
+            }
+            const horaGuardada = localStorage.getItem('turno_movil_hora_ap');
+            if(horaGuardada) document.getElementById('view_hora_ap').innerText = horaGuardada;
+            calcular();
+        } catch(e) { console.error("Error parseando localStorage", e); }
+    }
+
+    function borrarInicioLocal() {
+        if(confirm("¿Seguro que deseas eliminar los datos de inicio guardados? Se borrarán de forma definitiva.")){
+            localStorage.removeItem('turno_movil_datos');
+            localStorage.removeItem('turno_movil_hora_ap');
+            document.getElementById('formVentas').reset();
+            verificarEstadoTurnoLocal();
+            cargarPreciosCentrales();
+        }
+    }
+
+    function finalizarTarjetaInicio() {
+        location.reload();
+    }
+
+    function guardarEgresoRapido() {
+        guardarEstadoActualEnLocalStorage();
+        alert("Egresos guardados temporalmente en LocalStorage.");
+        irA(1);
+    }
+
+    function calcular() {
+        precios.glp = parseFloat(document.getElementById('p_glp').value) || 0;
+        precios.n93 = parseFloat(document.getElementById('p_n93').value) || 0;
+        precios.n97 = parseFloat(document.getElementById('p_n97').value) || 0;
+        precios.dsm = parseFloat(document.getElementById('p_dsm').value) || 0;
+        precios.gco = parseFloat(document.getElementById('p_gco').value) || 0;
+
+        let datosLocales = {};
+        try {
+            datosLocales = JSON.parse(localStorage.getItem('turno_movil_datos')) || {};
+        } catch(e) {}
+
+        // Lee de forma estricta: Prioriza el DOM; si está vacío u oculto, va al localStorage
+        const obtenerValorFiel = (id) => {
+            let el = document.getElementById(id);
+            if (el && el.value !== "") return parseFloat(el.value) || 0;
+            if (datosLocales[id] !== undefined && datosLocales[id] !== "") return parseFloat(datosLocales[id]) || 0;
+            return 0;
+        };
+
+        const tieneValorCierre = (id) => {
+            let el = document.getElementById(id);
+            if (el && el.value !== "") return true;
+            if (datosLocales[id] !== undefined && datosLocales[id] !== "") return true;
+            return false;
+        };
+
+        // --- SURTIDOR GAS ---
+        let g_ini = obtenerValorFiel('gas_ini');
+        let g_cie = obtenerValorFiel('gas_cie');
+        let lts_gas = 0;
+        let imp_gas = 0;
+        
+        if (tieneValorCierre('gas_cie') && g_cie > g_ini) {
+            lts_gas = g_cie - g_ini;
+            imp_gas = lts_gas * precios.glp;
+        }
+        document.getElementById('view_lts_gas').innerText = lts_gas.toFixed(2);
+        document.getElementById('view_val_gas').innerText = f(imp_gas);
+        document.getElementById('ing_gas_map').innerText = f(imp_gas);
+
+        // --- SURTIDOR 1 ---
+        let s1_tot = 0;
+        const picos = ['b','c','d','e','f','g'];
+        picos.forEach(p => {
+            let ini = obtenerValorFiel(`s1${p}_ini`);
+            let cie = obtenerValorFiel(`s1${p}_cie`);
+            let lts = 0;
+            
+            if (tieneValorCierre(`s1${p}_cie`) && cie > ini) {
+                lts = cie - ini;
+            }
+            
+            let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.dsm);
+            s1_tot += (lts * precio);
+        });
+        document.getElementById('view_imp_s1_top').innerText = f(s1_tot);
+        document.getElementById('ing_s1_map').innerText = f(s1_tot);
+
+        // --- SURTIDOR 2 ---
+        let s2_tot = 0;
+        picos.forEach(p => {
+            let ini = obtenerValorFiel(`s2${p}_ini`);
+            let cie = obtenerValorFiel(`s2${p}_cie`);
+            let lts = 0;
+            
+            if (tieneValorCierre(`s2${p}_cie`) && cie > ini) {
+                lts = cie - ini;
+            }
+            
+            let precio = (p=='b'||p=='e') ? precios.n93 : (p=='c'||p=='f' ? precios.n97 : precios.gco);
+            s2_tot += (lts * precio);
+        });
+        document.getElementById('view_imp_s2_top').innerText = f(s2_tot);
+        document.getElementById('ing_s2_map').innerText = f(s2_tot);
+
+        // --- ACUMULACIÓN DE INGRESOS ---
+        let sum_ing = imp_gas + s1_tot + s2_tot;
+        document.querySelectorAll('.ing-val').forEach(el => { sum_ing += parseFloat(el.value) || 0; });
+        document.getElementById('total_ingresos_view').innerText = f(sum_ing);
+        document.getElementById('res_ing').innerText = f(sum_ing);
+
+        // --- ACUMULACIÓN DE EGRESOS ---
+        let sum_egr = 0;
+        document.querySelectorAll('.egr-val').forEach(el => { sum_egr += parseFloat(el.value) || 0; });
+        document.getElementById('total_egresos_view').innerText = f(sum_egr);
+        document.getElementById('res_egr').innerText = f(sum_egr);
+
+        // --- BALANCE TOTAL ---
+        let balance = sum_ing - sum_egr;
+        document.getElementById('view_saldo').innerText = f(balance) + " ₲";
+    }
+
+    async function enviarARegistros() {
+        const op = document.getElementById('operador').value.trim();
+        const ap = localStorage.getItem('turno_movil_hora_ap') || "06:00";
+        const cie = document.getElementById('view_hora_cie_auto').innerText;
+
+        if(!confirm("¿Confirmar envío y asentar el cierre del turno en la Base de Datos central?")) return;
+
+        const btn = document.getElementById('btn_save');
+        btn.disabled = true; 
+        btn.innerText = "ENVIANDO PAQUETE JSON...";
+
+        const v = (id) => {
+            const el = document.getElementById(id);
+            if(el && el.value !== "") return el.value;
+            try {
+                const dl = JSON.parse(localStorage.getItem('turno_movil_datos')) || {};
+                return dl[id] || 0;
+            } catch(e) { return 0; }
+        };
+
+        const payload = {
+            action: "guardarVenta", 
+            operador: op, 
+            apertura: ap, 
+            cierre: cie,
+            gas_ini: v('gas_ini'), gas_cie: v('gas_cie'), lts_gas: "TT",
+            s1b_ini: v('s1b_ini'), s1b_cie: v('s1b_cie'), s1c_ini: v('s1c_ini'), s1c_cie: v('s1c_cie'),
+            s1d_ini: v('s1d_ini'), s1d_cie: v('s1d_cie'), s1e_ini: v('s1e_ini'), s1e_cie: v('s1e_cie'),
+            s1f_ini: v('s1f_ini'), s1f_cie: v('s1f_cie'), s1g_ini: v('s1g_ini'), s1g_cie: v('s1g_cie'),
+            s2b_ini: v('s2b_ini'), s2b_cie: v('s2b_cie'), s2c_ini: v('s2c_ini'), s2c_cie: v('s2c_cie'),
+            s2d_ini: v('s2d_ini'), s2d_cie: v('s2d_cie'), s2e_ini: v('s2e_ini'), s2e_cie: v('s2e_cie'),
+            s2f_ini: v('s2f_ini'), s2f_cie: v('s2f_cie'), s2g_ini: v('s2g_ini'), s2g_cie: v('s2g_cie'),
+            total_ingresos: document.getElementById('total_ingresos_view').innerText.replace(/\./g,''),
+            total_egresos: document.getElementById('total_egresos_view').innerText.replace(/\./g,''),
+            saldo: document.getElementById('view_saldo').innerText.replace(' ₲','').replace(/\./g,'')
+        };
+
+        for (let i = 1; i <= 10; i++) {
+            payload[`egr_${i}`] = v(`egr_${i}`);
+        }
+        payload['ing_extras'] = (parseFloat(v('ing_val_1')) + parseFloat(v('ing_val_2'))) || 0;
+
+        try {
+            await fetch(URL_SCRIPT + "?action=guardarVenta", { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify(payload) 
+            });
+            
+            alert("¡Cierre de turno registrado con éxito en la base central!");
+            
+            localStorage.removeItem('turno_movil_datos');
+            localStorage.removeItem('turno_movil_hora_ap');
+            document.getElementById('formVentas').reset();
+            
+            location.reload();
+        } catch (e) { 
+            alert("Error de comunicación con Google Script: " + e); 
+            btn.disabled = false; 
+            btn.innerText = "REINTENTAR ENVÍO CENTRAL";
+        }
+    }
+    </script>
+</body>
+</html>
