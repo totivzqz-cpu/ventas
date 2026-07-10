@@ -42,7 +42,7 @@
             gap: 8px;
             width: 100%;
         }
-        .row-concepto input[type="number"] {
+        .row-concepto input.val-filtrado {
             flex: 4;
         }
         .row-concepto input[type="text"].concepto-memo {
@@ -174,11 +174,11 @@
 
             <div class="card" id="tarjeta_2">
                 <div class="card-title">Precios Vigentes (₲)</div>
-                <div class="input-group"><label>GLP <span class="badge bg-gas">Gas</span></label><input type="number" id="p_glp" oninput="calcular()"></div>
-                <div class="input-group"><label>Nafta 93 <span class="badge bg-n93">N93</span></label><input type="number" id="p_n93" oninput="calcular()"></div>
-                <div class="input-group"><label>Nafta 97 <span class="badge bg-n97">N97</span></label><input type="number" id="p_n97" oninput="calcular()"></div>
-                <div class="input-group"><label>Diesel Sm <span class="badge bg-gsm">GSM</span></label><input type="number" id="p_dsm" oninput="calcular()"></div>
-                <div class="input-group"><label>G-Común <span class="badge bg-gco">GCO</span></label><input type="number" id="p_gco" oninput="calcular()"></div>
+                <div class="input-group"><label>GLP <span class="badge bg-gas">Gas</span></label><input type="text" inputmode="numeric" id="p_glp" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Nafta 93 <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="p_n93" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Nafta 97 <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="p_n97" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Diesel Sm <span class="badge bg-gsm">GSM</span></label><input type="text" inputmode="numeric" id="p_dsm" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>G-Común <span class="badge bg-gco">GCO</span></label><input type="text" inputmode="numeric" id="p_gco" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(1)">Volver</button>
@@ -190,7 +190,7 @@
                 <div class="card-title">Apertura - Surtidor Gas</div>
                 <div class="input-group">
                     <label>Totalizador Inicial <span class="badge bg-gas">Gas</span></label>
-                    <input type="number" step="any" id="gas_ini" oninput="calcular()">
+                    <input type="text" inputmode="numeric" id="gas_ini" oninput="limpiarYCalcular(this)">
                 </div>
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(2)">Volver</button>
@@ -202,14 +202,14 @@
                 <div class="card-title">Apertura - Surtidor 1</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1b_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1c_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1d_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s1b_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s1c_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="text" inputmode="numeric" id="s1d_ini" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1e_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1f_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1g_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s1e_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s1f_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="text" inputmode="numeric" id="s1g_ini" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(3)">Volver</button>
@@ -221,14 +221,14 @@
                 <div class="card-title">Apertura - Surtidor 2</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2b_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2c_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2d_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s2b_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s2c_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="text" inputmode="numeric" id="s2d_ini" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2e_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2f_ini" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2g_ini" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s2e_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s2f_ini" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="text" inputmode="numeric" id="s2g_ini" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="btn-nav-box">
                     <button type="button" class="btn-back" onclick="irA(4)">Volver</button>
@@ -252,7 +252,7 @@
                 <div class="card-title">Cierre - Surtidor Gas</div>
                 <div class="input-group">
                     <label>Totalizador Cierre <span class="badge bg-gas">Gas</span></label>
-                    <input type="number" step="any" id="gas_cie" oninput="calcular()">
+                    <input type="text" inputmode="numeric" id="gas_cie" oninput="limpiarYCalcular(this)">
                 </div>
                 <div class="calc-row"><span>Litros Vendidos:</span><strong id="view_lts_gas">0.00</strong></div>
                 <div class="calc-row ingreso-box"><span>Importe GLP:</span><strong id="view_val_gas">0</strong></div>
@@ -267,14 +267,14 @@
                 <div class="card-title">Cierre - Surtidor 1</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1b_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1c_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1d_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s1b_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s1c_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gsm">GSM</span></label><input type="text" inputmode="numeric" id="s1d_cie" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s1e_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s1f_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="number" step="any" id="s1g_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s1e_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s1f_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gsm">GSM</span></label><input type="text" inputmode="numeric" id="s1g_cie" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S1 Acumulado:</span><strong id="view_imp_s1_top">0</strong></div>
                 
@@ -288,14 +288,14 @@
                 <div class="card-title">Cierre - Surtidor 2</div>
                 
                 <div class="pico-header">Lado A</div>
-                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2b_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2c_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2d_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico B <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s2b_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico C <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s2c_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico D <span class="badge bg-gco">GCO</span></label><input type="text" inputmode="numeric" id="s2d_cie" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="pico-header">Lado B</div>
-                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="number" step="any" id="s2e_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="number" step="any" id="s2f_cie" oninput="calcular()"></div>
-                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="number" step="any" id="s2g_cie" oninput="calcular()"></div>
+                <div class="input-group"><label>Pico E <span class="badge bg-n93">N93</span></label><input type="text" inputmode="numeric" id="s2e_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico F <span class="badge bg-n97">N97</span></label><input type="text" inputmode="numeric" id="s2f_cie" oninput="limpiarYCalcular(this)"></div>
+                <div class="input-group"><label>Pico G <span class="badge bg-gco">GCO</span></label><input type="text" inputmode="numeric" id="s2g_cie" oninput="limpiarYCalcular(this)"></div>
                 
                 <div class="calc-row ingreso-box" style="margin-top:15px;"><span>Importe S2 Acumulado:</span><strong id="view_imp_s2_top">0</strong></div>
                 
@@ -314,14 +314,14 @@
                 <div class="input-group" style="margin-top:15px;">
                     <label>Otros Ingresos 1 (Lubricantes/Otros)</label>
                     <div class="row-concepto">
-                        <input type="number" id="ing_val_1" class="ing-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="ing_val_1" class="ing-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_ing_1" class="concepto-memo" placeholder="¿Concepto? Ej: Sencillo en caja">
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Otros Ingresos 2</label>
                     <div class="row-concepto">
-                        <input type="number" id="ing_val_2" class="ing-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="ing_val_2" class="ing-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_ing_2" class="concepto-memo" placeholder="¿Concepto? Ej: venta de hielo">
                     </div>
                 </div>
@@ -338,72 +338,62 @@
                 <div class="card-title" id="egr_title">Panel de Egresos / Vales (₲)</div>
                 
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_1" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_1" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_1" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_2" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_2" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_2" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_3" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_3" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_3" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_4" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_4" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_4" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_5" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_5" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_5" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_6" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_6" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_6" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_7" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_7" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_7" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_8" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_8" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_8" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_9" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_9" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_9" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
                 <div class="input-group">
-                    
                     <div class="row-concepto">
-                        <input type="number" id="egr_10" class="egr-val" placeholder="Monto" oninput="calcular()">
+                        <input type="text" inputmode="numeric" id="egr_10" class="egr-val val-filtrado" placeholder="Monto" oninput="limpiarYCalcular(this)">
                         <input type="text" id="memo_egr_10" class="concepto-memo" placeholder="¿Concepto?">
                     </div>
                 </div>
@@ -438,21 +428,21 @@
                         <tbody>
                             <tr>
                                 <td><span class="badge-table bg-gas">Gas</span></td>
-                                <td><input type="number" step="any" id="rev_gas_ini" oninput="sincronizarReview('gas_ini', this.value)"></td>
-                                <td><input type="number" step="any" id="rev_gas_cie" oninput="sincronizarReview('gas_cie', this.value)"></td>
+                                <td><input type="text" inputmode="numeric" id="rev_gas_ini" oninput="sincronizarReview('gas_ini', this.value)"></td>
+                                <td><input type="text" inputmode="numeric" id="rev_gas_cie" oninput="sincronizarReview('gas_cie', this.value)"></td>
                             </tr>
-                            <tr><td><span class="badge-table bg-n93">S1-B</span></td><td><input type="number" step="any" id="rev_s1b_ini" oninput="sincronizarReview('s1b_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1b_cie" oninput="sincronizarReview('s1b_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n97">S1-C</span></td><td><input type="number" step="any" id="rev_s1c_ini" oninput="sincronizarReview('s1c_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1c_cie" oninput="sincronizarReview('s1c_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-gsm">S1-D</span></td><td><input type="number" step="any" id="rev_s1d_ini" oninput="sincronizarReview('s1d_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1d_cie" oninput="sincronizarReview('s1d_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n93">S1-E</span></td><td><input type="number" step="any" id="rev_s1e_ini" oninput="sincronizarReview('s1e_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1e_cie" oninput="sincronizarReview('s1e_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n97">S1-F</span></td><td><input type="number" step="any" id="rev_s1f_ini" oninput="sincronizarReview('s1f_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1f_cie" oninput="sincronizarReview('s1f_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-gsm">S1-G</span></td><td><input type="number" step="any" id="rev_s1g_ini" oninput="sincronizarReview('s1g_ini', this.value)"></td><td><input type="number" step="any" id="rev_s1g_cie" oninput="sincronizarReview('s1g_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n93">S2-B</span></td><td><input type="number" step="any" id="rev_s2b_ini" oninput="sincronizarReview('s2b_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2b_cie" oninput="sincronizarReview('s2b_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n97">S2-C</span></td><td><input type="number" step="any" id="rev_s2c_ini" oninput="sincronizarReview('s2c_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2c_cie" oninput="sincronizarReview('s2c_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-gco">S2-D</span></td><td><input type="number" step="any" id="rev_s2d_ini" oninput="sincronizarReview('s2d_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2d_cie" oninput="sincronizarReview('s2d_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n93">S2-E</span></td><td><input type="number" step="any" id="rev_s2e_ini" oninput="sincronizarReview('s2e_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2e_cie" oninput="sincronizarReview('s2e_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-n97">S2-F</span></td><td><input type="number" step="any" id="rev_s2f_ini" oninput="sincronizarReview('s2f_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2f_cie" oninput="sincronizarReview('s2f_cie', this.value)"></td></tr>
-                            <tr><td><span class="badge-table bg-gco">S2-G</span></td><td><input type="number" step="any" id="rev_s2g_ini" oninput="sincronizarReview('s2g_ini', this.value)"></td><td><input type="number" step="any" id="rev_s2g_cie" oninput="sincronizarReview('s2g_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S1-B</span></td><td><input type="text" inputmode="numeric" id="rev_s1b_ini" oninput="sincronizarReview('s1b_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1b_cie" oninput="sincronizarReview('s1b_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S1-C</span></td><td><input type="text" inputmode="numeric" id="rev_s1c_ini" oninput="sincronizarReview('s1c_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1c_cie" oninput="sincronizarReview('s1c_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gsm">S1-D</span></td><td><input type="text" inputmode="numeric" id="rev_s1d_ini" oninput="sincronizarReview('s1d_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1d_cie" oninput="sincronizarReview('s1d_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S1-E</span></td><td><input type="text" inputmode="numeric" id="rev_s1e_ini" oninput="sincronizarReview('s1e_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1e_cie" oninput="sincronizarReview('s1e_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S1-F</span></td><td><input type="text" inputmode="numeric" id="rev_s1f_ini" oninput="sincronizarReview('s1f_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1f_cie" oninput="sincronizarReview('s1f_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gsm">S1-G</span></td><td><input type="text" inputmode="numeric" id="rev_s1g_ini" oninput="sincronizarReview('s1g_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s1g_cie" oninput="sincronizarReview('s1g_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S2-B</span></td><td><input type="text" inputmode="numeric" id="rev_s2b_ini" oninput="sincronizarReview('s2b_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2b_cie" oninput="sincronizarReview('s2b_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S2-C</span></td><td><input type="text" inputmode="numeric" id="rev_s2c_ini" oninput="sincronizarReview('s2c_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2c_cie" oninput="sincronizarReview('s2c_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gco">S2-D</span></td><td><input type="text" inputmode="numeric" id="rev_s2d_ini" oninput="sincronizarReview('s2d_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2d_cie" oninput="sincronizarReview('s2d_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n93">S2-E</span></td><td><input type="text" inputmode="numeric" id="rev_s2e_ini" oninput="sincronizarReview('s2e_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2e_cie" oninput="sincronizarReview('s2e_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-n97">S2-F</span></td><td><input type="text" inputmode="numeric" id="rev_s2f_ini" oninput="sincronizarReview('s2f_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2f_cie" oninput="sincronizarReview('s2f_cie', this.value)"></td></tr>
+                            <tr><td><span class="badge-table bg-gco">S2-G</span></td><td><input type="text" inputmode="numeric" id="rev_s2g_ini" oninput="sincronizarReview('s2g_ini', this.value)"></td><td><input type="text" inputmode="numeric" id="rev_s2g_cie" oninput="sincronizarReview('s2g_cie', this.value)"></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -493,6 +483,26 @@
     let modoEgresoRapidoActivo = false;
 
     function f(n) { return Math.round(n).toLocaleString('es-PY'); }
+
+    // Función Sanitarizadora para Dictado por Voz
+    function limpiarYCalcular(input) {
+        // Borra espacios en blanco
+        let valorLimpio = input.value.replace(/\s+/g, '');
+        // Elimina comas o puntos de miles accidentales que meta el motor de voz, dejando solo dígitos y puntos decimales
+        valorLimpio = valorLimpio.replace(/[^0-9.]/g, '');
+        
+        input.value = valorLimpio;
+        
+        // Si la llamada viene de la tabla de auditoría, sincroniza de forma cruzada
+        if(input.id.startsWith('rev_')) {
+            let idOriginal = input.id.replace('rev_', '');
+            let elOriginal = document.getElementById(idOriginal);
+            if(elOriginal) elOriginal.value = valorLimpio;
+        }
+        
+        calcular();
+        guardarEstadoActualEnLocalStorage();
+    }
 
     function irA(num) {
         document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
