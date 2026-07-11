@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Autonomía - Inicial</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #0f172a; 
+            color: #f1f5f9; 
+            padding: 15px; 
+            margin: 0; 
+        }
+        .container { max-width: 500px; margin: 0 auto; padding-top: 20px; }
+        
+        /* Cabecera Corporativa Idéntica a menu.html */
+        h1 { text-align: center; font-weight: 300; font-size: 24px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+        h1 a { color: #38bdf8; text-decoration: none; transition: color 0.2s; }
+        h1 a:hover { color: #60a5fa; }
+        
+        /* Estructura de la Tabla Gráfica */
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0 10px; /* Separa las filas como tarjetas independientes */
+            margin-top: 5px; 
+            display: none; 
+        }
+        
+        th { 
+            background-color: transparent; 
+            color: #64748b; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.08em; 
+            padding: 0 10px 5px 10px;
+            text-align: left;
+        }
+        
+        td { 
+            padding: 14px 12px; 
+            background: #1e293b; 
+            border: none;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        
+        /* Redondear esquinas estilo tarjeta por cada fila */
+        td:first-child { border-radius: 6px 0 0 6px; width: 45%; }
+        td:last-child { border-radius: 0 6px 6px 0; text-align: center; }
+        
+        .prod-name { font-weight: 700; color: #ffffff; font-size: 15px; }
+        .prod-sub { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+
+        /* FONDOS ESPECÍFICOS PARA LA CELDA DE CADA PRODUCTO */
+        .prod-n93 { background-color: #7a6500 !important; border-left: 5px solid #ffd600; } /* Amarillo Nafta 93 */
+        .prod-n97 { background-color: #003399 !important; border-left: 5px solid #0052d4; } /* Azul Nafta 97 */
+        .prod-gsm { background-color: #334155 !important; border-left: 5px solid #94a3b8; } /* Gris G-Smart */
+        .prod-gco { background-color: #05050a !important; border-left: 5px solid #cbd5e1; } /* Negro Gasoil Común */
+        .prod-glp { background-color: #991b1b !important; border-left: 5px solid #ef4444; } /* Rojo GLP */
+
+        /* Estilizado del número grande de días */
+        .num-dias { 
+            font-family: 'Segoe UI', sans-serif; 
+            font-size: 22px; 
+            font-weight: 800; 
+            text-align: right;
+            padding-right: 10px;
+            background: #1e293b;
+            white-space: nowrap;
+        }
+        .unit { font-size: 12px; font-weight: 400; color: #64748b; margin-left: 2px; }
+        
+        /* Bloques de Alerta en formato "Pastilla Semáforo" */
+        .status-container { background: #1e293b; text-align: center; width: 110px; }
+        .status-badge {
+            display: block;
+            width: 100%;
+            padding: 6px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+        }
+
+        /* Colores semáforo */
+        .bg-critico { background-color: #ef4444; color: #ffffff; } 
+        .bg-alerta { background-color: #f59e0b; color: #0f172a; }  
+        .bg-normal { background-color: #10b981; color: #ffffff; }  
+        .bg-sd { background-color: #475569; color: #ffffff; }      
+
+        /* Texto de días dinámico según criticidad */
+        .txt-critico { color: #f87171; }
+        .txt-alerta { color: #fbbf24; }
+        .txt-normal { color: #34d399; }
+
+        /* Loader */
+        .loader { text-align: center; padding: 40px; color: #38bdf8; font-size: 14px; background: #1e293b; border-radius: 8px; border: 1px solid #334155; }
+        .spinner { border: 3px solid rgba(56, 189, 248, 0.1); width: 32px; height: 32px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 0 auto 12px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error-msg { background: #7f1d1d; border: 1px solid #f87171; padding: 12px; border-radius: 6px; color: #fca5a5; font-size: 13px; }
+        
+        /* Pie de página visual */
+        .placeholder-box {
+            border: 1px dashed #334155;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Cabecera Corporativa Estricta -->
+        <h1><a href="menu.html" target="_self">Ñe'embucu Norte</a></h1>
+        
+        <div id="tabla-error"></div>
+
+        <div id="cargando" class="loader">
+            <div class="spinner"></div>
+            Analizando niveles de tanques...
+        </div>
+
+        <table id="tabla-autonomia">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th style="text-align: right; padding-right: 15px; width: 90px;">Días</th>
+                    <th style="text-align: center; width: 110px;">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-autonomia"></tbody>
+        </table>
+        
+        <div id="footer-decorativo" style="display:none;" class="placeholder-box">
+            Estación Alberdi — Modo Móvil Activo
+        </div>
+    </div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    
+    let registrosVentasGlobal = null;
+
+    function cargarDatosIniciales() {
+        const script = document.createElement('script');
+        script.src = `${SCRIPT_URL}?action=getHistoricoVentas&callback=recibirHistorico`;
+        document.body.appendChild(script);
+        document.body.removeChild(script);
+    }
+
+    function recibirHistorico(rowsVentas) {
+        registrosVentasGlobal = rowsVentas;
+        
+        const scriptMonitoreo = document.createElement('script');
+        scriptMonitoreo.src = `${SCRIPT_URL}?action=leerMonitoreo&callback=recibirMonitoreoYRenderizar`;
+        document.body.appendChild(scriptMonitoreo);
+        document.body.removeChild(scriptMonitoreo);
+    }
+
+    function parseFechaSegura(str) {
+        if (!str) return 0;
+        if (str instanceof Date) return str.getTime();
+        let soloFecha = str.toString().split(' ')[0];
+        const partes = soloFecha.split('/');
+        if(partes.length === 3) {
+            return new Date(partes[2], partes[1] - 1, partes[0]).getTime();
+        }
+        return new Date(str).getTime();
+    }
+
+    function recibirMonitoreoYRenderizar(dataMon) {
+        document.getElementById('cargando').style.display = "none";
+        
+        const rows = registrosVentasGlobal;
+        if (!rows || rows.length <= 1 || !dataMon || !dataMon.tanques) {
+            mostrarError("Error al procesar el flujo de datos.");
+            return;
+        }
+
+        const headers = rows[0];
+        const dataset = rows.slice(1);
+
+        const hoy = new Date();
+        const limite60Dias = new Date(hoy.getTime() - (60 * 24 * 60 * 60 * 1000)).getTime();
+        const reporte60Dias = {};
+
+        dataset.forEach(row => {
+            if (!row[0]) return;
+            let timeF = parseFechaSegura(row[0]);
+            if (!timeF || isNaN(timeF) || timeF < limite60Dias) return;
+
+            let fStr = new Date(timeF).toLocaleDateString('es-PY');
+            if (!reporte60Dias[fStr]) {
+                reporte60Dias[fStr] = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+            }
+
+            const v = (name) => {
+                let idx = headers.indexOf(name);
+                return idx !== -1 ? (parseFloat(row[idx]) || 0) : 0;
+            };
+
+            reporte60Dias[fStr].n93 += (v('s1b_cie')-v('s1b_ini')) + (v('s1e_cie')-v('s1e_ini')) + (v('s2b_cie')-v('s2b_ini')) + (v('s2e_cie')-v('s2e_ini'));
+            reporte60Dias[fStr].n97 += (v('s1c_cie')-v('s1c_ini')) + (v('s1f_cie')-v('s1f_ini')) + (v('s2c_cie')-v('s2c_ini')) + (v('s2f_cie')-v('s2f_ini'));
+            reporte60Dias[fStr].gsm += (v('s1d_cie')-v('s1d_ini')) + (v('s1g_cie')-v('s1g_ini'));
+            reporte60Dias[fStr].gco += (v('s2d_cie')-v('s2d_ini')) + (v('s2g_cie')-v('s2g_ini'));
+            reporte60Dias[fStr].glp += (v('gas_cie')-v('gas_ini')); 
+        });
+
+        const fechas60 = Object.keys(reporte60Dias);
+        const totalDias60 = fechas60.length;
+        let suma60 = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+
+        fechas60.forEach(f => {
+            suma60.n93 += reporte60Dias[f].n93;
+            suma60.n97 += reporte60Dias[f].n97;
+            suma60.gsm += reporte60Dias[f].gsm;
+            suma60.gco += reporte60Dias[f].gco;
+            suma60.glp += reporte60Dias[f].glp;
+        });
+
+        const prom = {
+            n93: totalDias60 > 0 ? (suma60.n93 / totalDias60) : 0,
+            n97: totalDias60 > 0 ? (suma60.n97 / totalDias60) : 0,
+            gsm: totalDias60 > 0 ? (suma60.gsm / totalDias60) : 0,
+            gco: totalDias60 > 0 ? (suma60.gco / totalDias60) : 0,
+            glp: totalDias60 > 0 ? (suma60.glp / totalDias60) : 0
+        };
+
+        let stockPorProducto = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+        dataMon.tanques.forEach(t => {
+            const prod = t.producto || "";
+            const actual = t.actual || 0;
+            let prodKey = prod.toLowerCase();
+
+            if (prodKey.includes("93")) stockPorProducto.n93 += actual;
+            else if (prodKey.includes("97")) stockPorProducto.n97 += actual;
+            else if (prodKey.includes("smart") || prodKey.includes("gsm")) stockPorProducto.gsm += actual;
+            else if (prodKey.includes("com") || prodKey.includes("gco")) stockPorProducto.gco += actual;
+            else if (prodKey.includes("glp")) stockPorProducto.glp += actual;
+        });
+
+        const infoVisual = {
+            n93: { nombre: "Nafta 93", ub: "Tanques: T3 y T5", css: "prod-n93" },
+            n97: { nombre: "Nafta 97", ub: "Tanques: T4 y T6", css: "prod-n97" },
+            gsm: { nombre: "G-Smart", ub: "Tanque: T2 único", css: "prod-gsm" },
+            gco: { nombre: "G-Común", ub: "Tanques: T1 y T7", css: "prod-gco" },
+            glp: { nombre: "GLP Gas", ub: "Tanque: T8 esférico", css: "prod-glp" }
+        };
+
+        const tbodyAutonomia = document.getElementById('cuerpo-autonomia');
+        tbodyAutonomia.innerHTML = '';
+
+        Object.keys(stockPorProducto).forEach(p => {
+            let totalStock = stockPorProducto[p];
+            let promedioDiario = prom[p] || 0;
+            let diasRestantes = 0;
+
+            if (promedioDiario > 0 && totalStock > 0) {
+                diasRestantes = (totalStock / promedioDiario).toFixed(1);
+            }
+
+            let claseFondo = "bg-normal";
+            let claseTexto = "txt-normal";
+            let estadoTexto = "OK";
+            
+            if (promedioDiario > 0) {
+                if (parseFloat(diasRestantes) <= 2.0) {
+                    claseFondo = "bg-critico";
+                    claseTexto = "txt-critico";
+                    estadoTexto = "CRÍTICO";
+                } else if (parseFloat(diasRestantes) <= 5.0) {
+                    claseFondo = "bg-alerta";
+                    claseTexto = "txt-alerta";
+                    estadoTexto = "ALERTA";
+                }
+            } else {
+                claseFondo = "bg-sd";
+                claseTexto = "";
+                estadoTexto = "S/D";
+            }
+
+            tbodyAutonomia.innerHTML += `
+                <tr>
+                    <td class="${infoVisual[p].css}">
+                        <div class="prod-name">${infoVisual[p].nombre}</div>
+                        <div class="prod-sub">${infoVisual[p].ub}</div>
+                    </td>
+                    <td class="num-dias ${claseTexto}">
+                        ${diasRestantes}<span class="unit">días</span>
+                    </td>
+                    <td class="status-container">
+                        <span class="status-badge ${claseFondo}">${estadoTexto}</span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('tabla-autonomia').style.display = "table";
+        document.getElementById('footer-decorativo').style.display = "block";
+    }
+
+    function mostrarError(msg) {
+        const errorDiv = document.getElementById('tabla-error');
+        errorDiv.innerHTML = `<div class="error-msg"><strong>❌ Error:</strong> ${msg}</div>`;
+    }
+
+    window.onload = cargarDatosIniciales;
+</script>
+</body>
+</html>

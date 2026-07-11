@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Menú Principal</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #0f172a; 
+            color: #f1f5f9; 
+            padding: 15px; 
+            margin: 0; 
+        }
+        .container { max-width: 500px; margin: 0 auto; padding-top: 20px; }
+        
+        /* Cabecera Corporativa Idéntica */
+        h1 { text-align: center; font-weight: 300; font-size: 24px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; }
+        h1 a { color: #38bdf8; text-decoration: none; transition: color 0.2s; }
+        h1 a:hover { color: #60a5fa; }
+        
+        /* Contenedor del Menú */
+        .menu-card { 
+            background: #1e293b; 
+            border-radius: 8px; 
+            padding: 25px 20px; 
+            border: 1px solid #334155; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
+        .menu-title { 
+            font-size: 14px; 
+            color: #94a3b8; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid #334155; 
+            padding-bottom: 8px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        
+        /* Botoneras de Acceso Directo */
+        .btn-menu { 
+            background: #1e293b; 
+            color: #38bdf8; 
+            border: 1px solid #38bdf8; 
+            margin-bottom: 15px; 
+            width: 100%; 
+            text-align: left; 
+            padding: 18px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: all 0.2s; 
+        }
+        .btn-menu:hover { 
+            background: #131e31; 
+            border-color: #60a5fa; 
+            color: #60a5fa; 
+        }
+        .btn-menu:active {
+            background: #0f172a;
+        }
+
+        /* Estilo para botones deshabilitados/futuros si decidís mostrarlos antes */
+        .btn-menu.disabled {
+            color: #64748b;
+            border-color: #334155;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-menu.disabled:hover {
+            background: #1e293b;
+            border-color: #334155;
+            color: #64748b;
+        }
+
+        /* Espacio reservado para cuando no hay módulos activos */
+        .placeholder-box {
+            border: 1px dashed #334155;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><a href="#">Ñe'embucu Norte</a></h1>
+
+        <div class="menu-card">
+            <div class="menu-title">Panel Operativo</div>
+            
+            <a href="ventasmoviles.html" class="btn-menu">
+                <span>📊 Ventas</span> ➔
+            </a>
+			
+			<a href="inicial.html" class="btn-menu">
+                <span>📊 Stock</span> ➔
+            </a>
+
+            <div class="placeholder-box">
+                Estación Alberdi — Modo Móvil Activo
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
