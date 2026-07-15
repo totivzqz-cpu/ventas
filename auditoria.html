@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditoría de Cálculos - Control de Tanques</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f1f5f9; padding: 30px; margin: 0; }
@@ -9,158 +10,318 @@
         h1 { text-align: center; color: #38bdf8; font-weight: 300; margin-bottom: 5px; }
         p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; }
         
-        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; display: none; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
-        th { background-color: #0f172a; color: #38bdf8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 25px; display: none; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background-color: #0f172a; color: #38bdf8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
         
-        tr:hover { background-color: #24334d; transition: background 0.2s ease; }
-        
-        .tag-prod { padding: 3px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; text-transform: uppercase; display: inline-block; }
-        .n93 { background: #ffd600; color: #000; } 
-        .n97 { background: #0052d4; color: #fff; } 
-        .gco { background: #475569; color: #fff; } 
-        .gsm { background: #e040fb; color: #fff; } 
-        .glp { background: #ff5722; color: #fff; }
+        tr:hover { background-color: #24334d; transition: background 0.2s; }
         
         .num { text-align: right; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
+        .pico-tag { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #94a3b8; font-weight: bold; }
         
-        .total-row { background-color: #0f172a; font-weight: bold; border-top: 2px solid #334155; }
-        .total-row td { color: #38bdf8; }
-        
-        #loading { text-align: center; font-size: 18px; color: #94a3b8; margin: 40px 0; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 10px auto; }
+        .loader { text-align: center; padding: 40px; color: #38bdf8; font-size: 16px; }
+        .spinner { border: 4px solid rgba(56, 189, 248, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 0 auto 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .error-msg { background: #7f1d1d; border: 1px solid #f87171; color: #fca5a5; padding: 15px; border-radius: 6px; margin-top: 20px; line-height: 1.5; }
-        #tabla-error { display: none; }
+        .total-row { background: #0f172a; font-weight: bold; border-top: 2px solid #38bdf8; }
+        .error-msg { background: #7f1d1d; border: 1px solid #f87171; padding: 15px; border-radius: 6px; color: #fca5a5; margin-bottom: 20px; }
+
+        .promedios-wrapper { margin-bottom: 25px; display: none; }
+        .promedios-header { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; }
+        .promedios-header span { font-size: 11px; color: #94a3b8; font-weight: normal; text-transform: none; }
+        .tabla-promedios { table-layout: fixed; }
+        .tabla-promedios th { background-color: #111827; text-align: center; font-size: 11px; }
+        .tabla-promedios td { text-align: center; font-weight: bold; font-size: 15px; color: #e2e8f0; background: #1e293b; border: 1px solid #334155; }
+        
+        .val-n93 { border-bottom: 3px solid #ffd600 !important; }
+        .val-n97 { border-bottom: 3px solid #0052d4 !important; }
+        .val-gsm { border-bottom: 3px solid #94a3b8 !important; }
+        .val-gco { border-bottom: 3px solid #22c55e !important; }
+        .val-glp { border-bottom: 3px solid #ef4444 !important; }
+
+        .autonomia-wrapper { margin-bottom: 35px; display: none; }
+        .critico { color: #f87171 !important; font-weight: bold; }
+        .alerta { color: #fbbf24 !important; font-weight: bold; }
+        .normal { color: #34d399 !important; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Auditoría de Movimiento de Tanques</h1>
-    <p class="subtitle">Verificación de ecuaciones de stock: Inicial (+) Compras (-) Ventas (=) Teórico Actual</p>
+    <div class="container">
+        <h1>Auditoría General & Control de Stocks</h1>
+        <p class="subtitle">Análisis técnico basado en registros en tiempo real sincronizados con la base de datos central</p>
 
-    <div id="loading">
-        <div class="spinner"></div>
-        Procesando datos del servidor de la estación...
+        <div id="tabla-error"></div>
+
+        <div id="cargando" class="loader">
+            <div class="spinner"></div>
+            Sincronizando flujos de datos y balance de inventario...
+        </div>
+
+        <div id="bloque-promedios" class="promedios-wrapper">
+            <div class="promedios-header">
+                📊 Rendimiento Diario Medio <span>(Cálculo matemático: Historial de Ventas / 60 días fijos)</span>
+            </div>
+            <table class="tabla-promedios" style="display: table;">
+                <thead>
+                    <tr>
+                        <th>N93 (Lts/Día)</th>
+                        <th>N97 (Lts/Día)</th>
+                        <th>G-Smart (Lts/Día)</th>
+                        <th>G-Común (Lts/Día)</th>
+                        <th>GLP (Lts/Día)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="pm-n93" class="val-n93">Cargando...</td>
+                        <td id="pm-n97" class="val-n97">Cargando...</td>
+                        <td id="pm-gsm" class="val-gsm">Cargando...</td>
+                        <td id="pm-gco" class="val-gco">Cargando...</td>
+                        <td id="pm-glp" class="val-glp">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="bloque-autonomia" class="autonomia-wrapper">
+            <div class="promedios-header">
+                📋 Estimación de Autonomía General <span>(Días de cobertura basados en la división del Stock Consolidado y el Promedio diario)</span>
+            </div>
+            <table id="tabla-autonomia" style="display: table;">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="num">Stock Total Consolidado</th>
+                        <th class="num">Promedio Venta Diario</th>
+                        <th class="num">Autonomía Disponible</th>
+                        <th>Estado de Cobertura</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-autonomia"></tbody>
+            </table>
+        </div>
+
+        <table id="tabla-auditoria">
+            <thead>
+                <tr>
+                    <th style="width: 80px; text-align: center;">Tanque</th>
+                    <th>Combustible</th>
+                    <th class="num">Stock Inicial (Punto Cero)</th>
+                    <th class="num">(+) Compras Históricas</th>
+                    <th class="num">(-) Ventas Totales</th>
+                    <th class="num" style="color: #38bdf8;">Stock Teórico Actual</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-auditoria"></tbody>
+        </table>
     </div>
 
-    <div id="tabla-error"></div>
-
-    <table id="tabla-auditoria">
-        <thead>
-            <tr>
-                <th>Código</th>
-                <th>Combustible</th>
-                <th style="text-align: right;">Inventario Inicial</th>
-                <th style="text-align: right;">(+) Compras (Descargas)</th>
-                <th style="text-align: right;">(-) Ventas Calculadas</th>
-                <th style="text-align: right;">(=) Stock Teórico Actual</th>
-            </tr>
-        </thead>
-        <tbody id="contenido-tabla">
-        </tbody>
-    </table>
-</div>
-
 <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    
+    let cacheDataMonitoreo = null;
+    let promediosHistoricos = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
 
-    function cargarAuditoria() {
-        const script = document.createElement('script');
-        script.src = `${URL_SCRIPT}?action=leerMonitoreo&callback=renderizarAuditoria`;
-        script.onerror = function() {
-            document.getElementById('loading').style.display = 'none';
-            mostrarError("Error de red o CORS: No se pudo conectar al Apps Script.");
-        };
-        document.body.appendChild(script);
+    function cargarDatosAuditoria() {
+        // Solicitamos los datos físicos de los tanques
+        const scriptMonitoreo = document.createElement('script');
+        scriptMonitoreo.src = `${SCRIPT_URL}?action=leerMonitoreo&callback=recibirMonitoreo`;
+        document.body.appendChild(scriptMonitoreo);
+        document.body.removeChild(scriptMonitoreo);
     }
 
-    function renderizarAuditoria(res) {
-        document.getElementById('loading').style.display = 'none';
+    function recibirMonitoreo(dataMon) {
+        cacheDataMonitoreo = dataMon;
+        // Solicitamos el historial idéntico al reporte de ventas para unificar promedios
+        const scriptHistorial = document.createElement('script');
+        scriptHistorial.src = `${SCRIPT_URL}?action=getHistoricoVentas&callback=recibirHistorialYRenderizar`;
+        document.body.appendChild(scriptHistorial);
+        document.body.removeChild(scriptHistorial);
+    }
+
+    function recibirHistorialYRenderizar(dataHistorial) {
+        document.getElementById('cargando').style.display = "none";
         
-        if (!res || res.error) {
-            mostrarError(res ? res.error : "No se recibieron respuestas estructuradas.");
+        if (!cacheDataMonitoreo || !dataHistorial) {
+            mostrarError("Error en la sincronización de flujos paralelos desde el servidor.");
             return;
         }
 
-        const tabla = document.getElementById('tabla-auditoria');
-        const tbody = document.getElementById('contenido-tabla');
-        tbody.innerHTML = "";
+        // --- 1. PROCESAMIENTO MATEMÁTICO DEL HISTORIAL (IGUAL QUE REPORTE DE VENTAS) ---
+        let sumasHistoricas = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
+        const hoy = new Date();
 
-        const clasesProd = { "Gco": "gco", "Gsm": "gsm", "N93": "n93", "N97": "n97", "GLP": "glp" };
+        for (let i = 1; i < dataHistorial.length; i++) {
+            let fila = dataHistorial[i];
+            if (!fila[0]) continue;
+            
+            let fechaFila = new Date(fila[0]);
+            let diffTiempo = Math.abs(hoy - fechaFila);
+            let diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
+            
+            if (diffDias > 60) continue;
+
+            let lts_n93 = (parseFloat(fila[8]) - parseFloat(fila[7]))   + (parseFloat(fila[14]) - parseFloat(fila[13])) +
+                          (parseFloat(fila[20]) - parseFloat(fila[19])) + (parseFloat(fila[26]) - parseFloat(fila[25]));
+            let lts_n97 = (parseFloat(fila[10]) - parseFloat(fila[9]))  + (parseFloat(fila[16]) - parseFloat(fila[15])) +
+                          (parseFloat(fila[22]) - parseFloat(fila[21])) + (parseFloat(fila[28]) - parseFloat(fila[27]));
+            let lts_gsm = (parseFloat(fila[12]) - parseFloat(fila[11])) + (parseFloat(fila[18]) - parseFloat(fila[17]));
+            let lts_gco = (parseFloat(fila[24]) - parseFloat(fila[23])) + (parseFloat(fila[30]) - parseFloat(fila[29]));
+            let lts_glp = parseFloat(fila[5]) - parseFloat(fila[4]);
+
+            sumasHistoricas.n93 += isNaN(lts_n93) ? 0 : lts_n93;
+            sumasHistoricas.n97 += isNaN(lts_n97) ? 0 : lts_n97;
+            sumasHistoricas.gsm += isNaN(lts_gsm) ? 0 : lts_gsm;
+            sumasHistoricas.gco += isNaN(lts_gco) ? 0 : lts_gco;
+            sumasHistoricas.glp += isNaN(lts_glp) ? 0 : lts_glp;
+        }
+
+        promediosHistoricos = {
+            n93: sumasHistoricas.n93 / 60,
+            n97: sumasHistoricas.n97 / 60,
+            gsm: sumasHistoricas.gsm / 60,
+            gco: sumasHistoricas.gco / 60,
+            glp: sumasHistoricas.glp / 60
+        };
+
+        // Inyectar promedios reales exactos en las tarjetas superiores
+        document.getElementById('pm-n93').innerText = `${Math.round(promediosHistoricos.n93).toLocaleString('es-PY')} L`;
+        document.getElementById('pm-n97').innerText = `${Math.round(promediosHistoricos.n97).toLocaleString('es-PY')} L`;
+        document.getElementById('pm-gsm').innerText = `${Math.round(promediosHistoricos.gsm).toLocaleString('es-PY')} L`;
+        document.getElementById('pm-gco').innerText = `${Math.round(promediosHistoricos.gco).toLocaleString('es-PY')} L`;
+        document.getElementById('pm-glp').innerText = `${Math.round(promediosHistoricos.glp).toLocaleString('es-PY')} L`;
+        document.getElementById('bloque-promedios').style.display = "block";
+
+        // --- 2. RENDERIZADO DE TABLA DE AUDITORÍA DE TANQUES ---
+        const tbody = document.getElementById('cuerpo-auditoria');
+        tbody.innerHTML = '';
+
+        let sumOriginal = 0, sumCompras = 0, sumVentas = 0, sumActual = 0;
+        let stockPorProducto = { n93: 0, n97: 0, gsm: 0, gco: 0, glp: 0 };
         
-        let sumOriginal = 0;
-        let sumCompras = 0;
-        let sumVentas = 0;
-        let sumActual = 0;
+        const mapeoPicos = cacheDataMonitoreo.config.mapeoPicos || {};
+        const tIniciales = cacheDataMonitoreo.control_inicial || {};
+        const comprasPestana = cacheDataMonitoreo.comprasRealesPestana || {};
 
-        for (let i = 1; i <= 8; i++) {
-            const nombre = res.config.nombres[i] || `Tanque ${i}`;
-            const producto = nombre.split('(')[1]?.replace(')', '') || 'Comb';
+        cacheDataMonitoreo.tanques.forEach(infoTanque => {
+            const t = infoTanque.tanque;
+            const prod = infoTanque.producto || "S/D";
+            const actual = parseFloat(infoTanque.actual || 0);
 
-            let prodKey = "Gco";
-            if (nombre.includes("Gsm")) prodKey = "Gsm";
-            if (nombre.includes("N93")) prodKey = "N93";
-            if (nombre.includes("N97")) prodKey = "N97";
-            if (nombre.includes("GLP")) prodKey = "GLP";
+            let inicial = parseFloat(tIniciales["T" + t] || tIniciales[t] || infoTanque.inicial || 0);
+            if (isNaN(inicial)) inicial = 0;
 
-            const claseEstilo = clasesProd[prodKey] || "gco";
+            const comprasHistoricas = parseFloat(comprasPestana["T" + t] || 0);
+            let ventasTotales = inicial + comprasHistoricas - actual;
+            if (ventasTotales < 0) ventasTotales = 0;
 
-            const original = Number(res.inicial[i]) || 0;
-            
-            // FÓRMULA UNIFICADA Y GENÉRICA PARA LAS VENTAS DE AUDITORÍA
-            // Aplica tanto para el Tanque 8 (GLP) como para los líquidos usando las variables procesadas del backend
-            const ventaCalculada = Number(res.ventas[i]) || 0;
-            
-            // CAPTURA DE COMPRAS DESDE EL ACUMULADOR
-            const comprasReales = (res.compras && res.compras[i]) ? Number(res.compras[i]) : 0;
-            const actual = Number(res.actual[i]) || 0;
+            let prodKey = prod.toLowerCase();
+            if (prodKey.includes("93")) stockPorProducto.n93 += actual;
+            else if (prodKey.includes("97")) stockPorProducto.n97 += actual;
+            else if (prodKey.includes("smart") || prodKey.includes("gsm")) stockPorProducto.gsm += actual;
+            else if (prodKey.includes("com") || prodKey.includes("gco")) stockPorProducto.gco += actual;
+            else if (prodKey.includes("glp")) stockPorProducto.glp += actual;
 
-            sumOriginal += original;
-            sumCompras += comprasReales;
-            sumVentas += ventaCalculada;
+            let listaPicosAsociados = [];
+            for (let key in mapeoPicos) {
+                if (mapeoPicos[key].t === t) {
+                    listaPicosAsociados.push(`<span class="pico-tag">${key.toUpperCase()}</span>`);
+                }
+            }
+
+            sumOriginal += inicial;
+            sumCompras += comprasHistoricas;
+            sumVentas += ventasTotales;
             sumActual += actual;
 
             tbody.innerHTML += `
                 <tr>
-                    <td><strong>Tanque ${i}</strong></td>
-                    <td><span class="tag-prod ${claseEstilo}">${producto}</span></td>
-                    <td class="num">${original.toLocaleString('es-PY')} L</td>
+                    <td style="font-weight: bold; text-align: center; color: #38bdf8;">T${t}</td>
+                    <td><strong>${prod}</strong> <div style="margin-top: 4px; display:flex; gap:3px; flex-wrap:wrap;">${listaPicosAsociados.join('')}</div></td>
+                    <td class="num" style="font-weight: bold; color: #e2e8f0;">${Math.round(inicial).toLocaleString('es-PY')} L</td>
                     <td class="num" style="color: #22c55e; font-weight: 500;">
-                        ${comprasReales > 0 ? '+ ' + comprasReales.toLocaleString('es-PY') + ' L' : '0 L'}
+                        ${comprasHistoricas > 0 ? '+ ' + Math.round(comprasHistoricas).toLocaleString('es-PY') + ' L' : '0 L'}
                     </td>
                     <td class="num" style="color: #ef4444;">
-                        ${ventaCalculada > 0 ? '- ' + ventaCalculada.toLocaleString('es-PY') + ' L' : '0 L'}
+                        ${ventasTotales > 0 ? '- ' + Math.round(ventasTotales).toLocaleString('es-PY') + ' L' : '0 L'}
                     </td>
                     <td class="num" style="font-weight: bold; color: ${actual < 0 ? '#f87171' : '#38bdf8'};">
                         ${Math.round(actual).toLocaleString('es-PY')} L
                     </td>
                 </tr>
             `;
-        }
+        });
 
         tbody.innerHTML += `
             <tr class="total-row">
                 <td colspan="2">TOTALES GENERALES</td>
-                <td class="num">${sumOriginal.toLocaleString('es-PY')} L</td>
-                <td class="num" style="color: #22c55e;">+ ${sumCompras.toLocaleString('es-PY')} L</td>
-                <td class="num" style="color: #ef4444;">- ${sumVentas.toLocaleString('es-PY')} L</td>
+                <td class="num">${Math.round(sumOriginal).toLocaleString('es-PY')} L</td>
+                <td class="num" style="color: #22c55e;">+ ${Math.round(sumCompras).toLocaleString('es-PY')} L</td>
+                <td class="num" style="color: #ef4444;">- ${Math.round(sumVentas).toLocaleString('es-PY')} L</td>
                 <td class="num" style="color: #38bdf8;">${Math.round(sumActual).toLocaleString('es-PY')} L</td>
             </tr>
         `;
 
-        tabla.style.display = "table";
+        document.getElementById('tabla-auditoria').style.display = "table";
+
+        // --- 3. RENDERIZADO DE TABLA DE AUTONOMÍA ---
+        const diccionarioNombres = {
+            n93: "Nafta 93 (T3 - T5)",
+            n97: "Nafta 97 (T4 - T6)",
+            gsm: "G-Smart (T2)",
+            gco: "G-Común (T1 - T7)",
+            glp: "GLP (T8)"
+        };
+
+        const tbodyAutonomia = document.getElementById('cuerpo-autonomia');
+        tbodyAutonomia.innerHTML = '';
+
+        Object.keys(stockPorProducto).forEach(p => {
+            let totalStock = stockPorProducto[p];
+            let promedioDiario = promediosHistoricos[p];
+            let diasRestantes = 0;
+
+            if (promedioDiario > 0 && totalStock > 0) {
+                diasRestantes = (totalStock / promedioDiario).toFixed(1);
+            }
+
+            let alertaClase = "normal";
+            let estadoTexto = "✓ Estable";
+            
+            if (promedioDiario > 0) {
+                if (parseFloat(diasRestantes) <= 2.0) {
+                    alertaClase = "critico";
+                    estadoTexto = "🚨 Crítico (Abastecer)";
+                } else if (parseFloat(diasRestantes) <= 5.0) {
+                    alertaClase = "alerta";
+                    estadoTexto = "⚠️ Bajo";
+                }
+            } else {
+                estadoTexto = "S/D Promedio";
+            }
+
+            tbodyAutonomia.innerHTML += `
+                <tr>
+                    <td><strong>${diccionarioNombres[p]}</strong></td>
+                    <td class="num">${Math.round(totalStock).toLocaleString('es-PY')} L</td>
+                    <td class="num">${Math.round(promedioDiario).toLocaleString('es-PY')} L/Día</td>
+                    <td class="num ${alertaClase}" style="font-size: 15px; font-weight: bold;">${diasRestantes} días</td>
+                    <td class="${alertaClase}">${estadoTexto}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('bloque-autonomia').style.display = "block";
     }
 
     function mostrarError(msg) {
         const errorDiv = document.getElementById('tabla-error');
-        errorDiv.innerHTML = `<div class="error-msg"><strong>❌ Error Detectado:</strong><br>${msg}</div>`;
-        errorDiv.style.display = "block";
+        errorDiv.innerHTML = `<div class="error-msg"><strong>❌ Error Detectado:</strong> ${msg}</div>`;
+        document.getElementById('cargando').style.display = "none";
     }
 
-    window.onload = cargarAuditoria;
+    window.onload = cargarDatosAuditoria;
 </script>
 </body>
 </html>

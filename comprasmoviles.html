@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ñe'embucu Norte - Formulario Único de Pista</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-main); 
+            color: var(--text); 
+            padding: 15px; 
+            margin: 0; 
+        }
+        .container { max-width: 500px; margin: 0 auto; padding-top: 10px; }
+        
+        h1 { text-align: center; font-weight: 300; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        h1 a { color: var(--accent); text-decoration: none; }
+        
+        .card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        
+        label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border 0.2s;
+        }
+        select:focus, input:focus { border-color: var(--accent); outline: none; }
+        
+        .grid-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { background: #334155; color: var(--text-muted); cursor: not-allowed; }
+        
+        .pico-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--accent);
+        }
+        .pico-label { font-weight: bold; font-size: 14px; color: var(--accent); }
+        .pico-input { width: 140px; margin-bottom: 0; padding: 6px 10px; text-align: right; font-family: monospace; font-size: 15px; }
+        
+        .notif {
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .loading-inline { text-align: center; color: var(--accent); padding: 10px; font-size: 14px; }
+
+        .audit-title { font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; }
+        .audit-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 14px; }
+        .audit-item span.num { font-family: monospace; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><a href="#">Control de Pista</a></h1>
+        
+        <div class="card">
+            <label for="select-tanque">Seleccionar Tanque</label>
+            <select id="select-tanque" onchange="procesarCambioTanque()">
+                <option value="1" data-prod="GCO">Tanque 1 - G-Común</option>
+                <option value="2" data-prod="GSM">Tanque 2 - G-Smart</option>
+                <option value="3" data-prod="N93">Tanque 3 - Nafta 93</option>
+                <option value="4" data-prod="N97">Tanque 4 - Nafta 97</option>
+                <option value="5" data-prod="N93">Tanque 5 - Nafta 93</option>
+                <option value="6" data-prod="N97">Tanque 6 - Nafta 97</option>
+                <option value="7" data-prod="GCO">Tanque 7 - G-Común</option>
+                <option value="8" data-prod="GLP">Tanque 8 - GLP</option>
+            </select>
+            
+            <label>Volumen Físico Actual (Regla/Telemedición)</label>
+            <input type="number" id="volumen-fisico-real" placeholder="Ej. 4500" step="any">
+        </div>
+
+        <div class="card">
+            <div style="margin-bottom: 15px; font-weight: bold; color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">
+                Lectura de Picos Mecánicos Relacionados
+            </div>
+            <div id="loading-picos" class="loading-inline">Cargando picos asociados...</div>
+            <div id="contenedor-picos"></div>
+        </div>
+
+        <div class="card">
+            <div style="margin-bottom: 15px; font-weight: bold; color: var(--warning); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">
+                ¿Hubo descarga de camión cisterna? (Opcional)
+            </div>
+            <div class="grid-dos">
+                <div>
+                    <label>Litros Descargados</label>
+                    <input type="number" id="compra-litros" placeholder="Ej. 5000" step="any">
+                </div>
+                <div>
+                    <label>Nro Factura / Remisión</label>
+                    <input type="text" id="compra-factura" placeholder="Ej. 001-002-1234">
+                </div>
+            </div>
+        </div>
+
+        <div id="notificacion-estado" class="notif"></div>
+        <button id="btn-guardar" class="btn-submit" onclick="enviarFormularioUnico()">Enviar Reporte de Pista</button>
+
+        <div class="card" style="margin-top: 25px;">
+            <div class="audit-title">📋 Estado Actual en Base de Datos</div>
+            <div id="loading-audit" class="loading-inline">Sincronizando con Sheets...</div>
+            <div id="reporte-auditoria-pista" style="display:none;">
+                <div class="audit-item"><span>Stock Anterior:</span><span id="aud-anterior" class="num">0 L</span></div>
+                <div class="audit-item"><span style="color:var(--success)">(+) Compras Recientes:</span><span id="aud-compras" class="num" style="color:var(--success)">0 L</span></div>
+                <div class="audit-item"><span style="color:var(--danger)">(-) Ventas registradas:</span><span id="aud-ventas" class="num" style="color:var(--danger)">0 L</span></div>
+                <div class="audit-item" style="border-bottom:none; margin-top:5px; font-size:15px;"><strong>Stock Teórico Esperado:</strong><span id="aud-teorico" class="num" style="color:var(--accent)">0 L</span></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxgDwm_R3oE9F9XTVcFl-vzAw5k4KHXg4s8CqS3MUgruoVMmOwVJ-YkcpQmvYIpKIjaKQ/exec";
+    
+    let cacheConfig = null;
+    let datosOriginalesCompletos = {};
+    let cacheMonitoreoFull = null;
+
+    async function inicializarFormulario() {
+        try {
+            const resp = await fetch(`${URL_SCRIPT}?action=leerMonitoreo`);
+            cacheMonitoreoFull = await resp.json();
+            cacheConfig = cacheMonitoreoFull.config || {};
+            
+            const respControl = await fetch(`${URL_SCRIPT}?action=leerControlInicial`);
+            datosOriginalesCompletos = await respControl.json();
+            
+            await procesarCambioTanque();
+        } catch (e) {
+            document.getElementById('loading-picos').innerText = "❌ Error al sincronizar configuración base.";
+            console.error(e);
+        }
+    }
+
+    async function procesarCambioTanque() {
+        const contenedor = document.getElementById('contenedor-picos');
+        const loader = document.getElementById('loading-picos');
+        contenedor.innerHTML = "";
+        loader.style.display = "block";
+
+        if (!cacheConfig || !cacheConfig.mapeoPicos) {
+            setTimeout(procesarCambioTanque, 1000);
+            return;
+        }
+
+        const tanqueSeleccionado = parseInt(document.getElementById('select-tanque').value);
+        const picos = cacheConfig.mapeoPicos;
+        let picosEncontrados = 0;
+
+        for (let picoId in picos) {
+            if (picos[picoId].t === tanqueSeleccionado) {
+                picosEncontrados++;
+                const valorActual = datosOriginalesCompletos[picoId.toLowerCase()] || datosOriginalesCompletos[picoId.toUpperCase()] || "";
+                
+                contenedor.innerHTML += `
+                    <div class="pico-row">
+                        <span class="pico-label">PICO ${picoId.toUpperCase()}</span>
+                        <input type="number" class="pico-input input-pico-dinamico" 
+                               data-pico="${picoId}" 
+                               value="${valorActual}" 
+                               placeholder="Lectura" step="any">
+                    </div>
+                `;
+            }
+        }
+
+        loader.style.display = "none";
+        if (picosEncontrados === 0) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:14px; padding:10px;">Este tanque no posee picos mecánicos asociados.</div>`;
+        }
+
+        actualizarReporteAuditoriaTanque(tanqueSeleccionado);
+    }
+
+    function actualizarReporteAuditoriaTanque(tanqueId) {
+        if (!cacheMonitoreoFull) return;
+
+        document.getElementById('loading-audit').style.display = "none";
+        document.getElementById('reporte-auditoria-pista').style.display = "block";
+
+        const tIniciales = cacheMonitoreoFull.control_inicial || {};
+        const comprasPestana = cacheMonitoreoFull.comprasRealesPestana || {};
+        const infoTanque = cacheMonitoreoFull.tanques.find(t => t.tanque == tanqueId) || {};
+
+        let inicial = parseFloat(tIniciales["T" + tanqueId] || tIniciales[tanqueId] || infoTanque.inicial || 0);
+        let compras = parseFloat(comprasPestana["T" + tanqueId] || 0);
+        let actual = parseFloat(infoTanque.actual || 0);
+        let ventas = inicial + compras - actual;
+        if (ventas < 0) ventas = 0;
+
+        document.getElementById('aud-anterior').innerText = `${Math.round(inicial).toLocaleString('es-PY')} L`;
+        document.getElementById('aud-compras').innerText = `+ ${Math.round(compras).toLocaleString('es-PY')} L`;
+        document.getElementById('aud-ventas').innerText = `- ${Math.round(ventas).toLocaleString('es-PY')} L`;
+        document.getElementById('aud-teorico').innerText = `${Math.round(actual).toLocaleString('es-PY')} L`;
+    }
+
+    async function enviarFormularioUnico() {
+        const btn = document.getElementById('btn-guardar');
+        const notif = document.getElementById('notificacion-estado');
+        
+        const selectTanque = document.getElementById('select-tanque');
+        const tanque = selectTanque.value;
+        const productoTexto = selectTanque.options[selectTanque.selectedIndex].getAttribute('data-prod');
+        
+        const volumenFisico = parseFloat(document.getElementById('volumen-fisico-real').value);
+        const litrosCompra = parseFloat(document.getElementById('compra-litros').value) || 0;
+        const facturaCompra = document.getElementById('compra-factura').value.trim();
+
+        if (isNaN(volumenFisico)) {
+            alert("Por favor, introduce el volumen físico medido en el tanque.");
+            return;
+        }
+
+        btn.disabled = true;
+        notif.style.display = "block";
+        notif.style.background = "rgba(56, 189, 248, 0.15)";
+        notif.style.color = "var(--accent)";
+        notif.innerHTML = "Procesando balance de inventario y picos...";
+
+        // 1. GENERAR LA FECHA ACTUAL DE HOY
+        const hoy = new Date();
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const anio = hoy.getFullYear();
+        const fechaFormateada = `${dia}/${mes}/${anio}`;
+
+        // Objeto plano y limpio de datos (Keys estrictamente en minúsculas)
+        let datosLimpiosMinusculas = {};
+
+        // Copiar histórico base completo omitiendo propiedades viejas de fecha
+        for (let key in datosOriginalesCompletos) {
+            let kLow = key.toLowerCase();
+            if (kLow === "fecha" || kLow === "timestamp" || kLow === "date" || kLow === "responsable") continue;
+            datosLimpiosMinusculas[kLow] = datosOriginalesCompletos[key];
+        }
+
+        // Recolectar lecturas de picos de pantalla
+        const inputsPicos = document.querySelectorAll('.input-pico-dinamico');
+        let errorPicos = false;
+
+        inputsPicos.forEach(input => {
+            const picoId = input.getAttribute('data-pico').toLowerCase();
+            const valPico = parseFloat(input.value);
+            if (isNaN(valPico)) errorPicos = true;
+            datosLimpiosMinusculas[picoId] = valPico;
+        });
+
+        if (errorPicos) {
+            alert("Los totalizadores de los picos no pueden quedarse vacíos.");
+            btn.disabled = false;
+            notif.style.display = "none";
+            return;
+        }
+
+        // Inyectar volumen de tanque en minúscula estricta
+        datosLimpiosMinusculas["t" + tanque] = volumenFisico;
+
+        // ASENTAR LA COMPRA PRIMERO (Si aplica)
+        if (litrosCompra > 0) {
+            notif.innerHTML = `Asentando descarga de camión (${productoTexto})...`;
+            try {
+                let respuestaCompra = await fetch(URL_SCRIPT, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "guardarCompra",
+                        tanque: tanque,
+                        producto: productoTexto,
+                        litros: litrosCompra,
+                        factura: facturaCompra || "S/N"
+                    })
+                });
+                await respuestaCompra.text();
+            } catch (errCompra) {
+                console.error("Error intermedio en compra: ", errCompra);
+            }
+        }
+
+        // ENVÍO DE PUNTO CERO ULTRA BLINDADO
+        notif.innerHTML = "Estableciendo nuevo Punto Cero con fecha de hoy...";
+        
+        let payloadRedundante = {
+            action: "guardarControlInicial",
+            responsable: "Pista - Form Único",
+            fecha: fechaFormateada,
+            datos: datosLimpiosMinusculas
+        };
+
+        try {
+            let respuestaControl = await fetch(URL_SCRIPT, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payloadRedundante)
+            });
+            
+            await respuestaControl.text();
+
+            notif.style.background = "rgba(16, 185, 129, 0.15)";
+            notif.style.color = "var(--success)";
+            notif.innerHTML = `✅ ¡Operación exitosa! Guardado en fecha ${fechaFormateada}`;
+
+            document.getElementById('volumen-fisico-real').value = "";
+            document.getElementById('compra-litros').value = "";
+            document.getElementById('compra-factura').value = "";
+
+            setTimeout(async () => {
+                notif.style.display = "none";
+                btn.disabled = false;
+                await inicializarFormulario();
+            }, 2500);
+
+        } catch (e) {
+            alert("Error al fijar el punto cero: " + e.message);
+            btn.disabled = false;
+            notif.style.display = "none";
+        }
+    }
+
+    window.onload = inicializarFormulario;
+</script>
+</body>
+</html>
