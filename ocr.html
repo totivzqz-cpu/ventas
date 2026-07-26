@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector Surtidor LCD (Final)</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 10px auto; padding: 0 10px; text-align: center; background-color: #f4f4f9; }
+        h2 { color: #333; }
+        video, canvas, img { max-width: 100%; margin-top: 10px; border: 2px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .botones { margin: 15px 0; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        button, input[type="file"] { padding: 10px 18px; cursor: pointer; font-size: 15px; border-radius: 5px; border: 1px solid #ccc; background: white; transition: background 0.2s; }
+        button:hover { background: #e0e0e0; }
+        #btn-capturar { background-color: #d32f2f; color: white; border: none; }
+        #btn-capturar:hover { background-color: #b71c1c; }
+        #resultado-box { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #c8e6c9; }
+        .estado { font-size: 0.9em; color: #666; font-style: italic; }
+        .texto-gigante { font-size: 3.2em; font-weight: bold; color: #1b5e20; letter-spacing: 1px; font-family: 'Courier New', Courier, monospace; margin: 10px 0; }
+        .controles { margin-top: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #eee; text-align: left; }
+        .controles label { font-weight: bold; color: #555; }
+        .texto-bruto-container { margin-top: 10px; padding: 10px; background: #fafafa; border-radius: 5px; border: 1px solid #eee; }
+        .texto-bruto { font-size: 0.8em; color: #777; white-space: pre-wrap; text-align: left; font-family: monospace; }
+        #video-container { position: relative; margin-top: 10px; }
+        #roi-guide { position: absolute; top: 15%; left: 10%; width: 80%; height: 70%; border: 3px dashed rgba(255,0,0,0.6); border-radius: 5px; pointer-events: none; display: none; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <h2>Lector Surtidor (Formato: XXX.XXX)</h2>
+
+    <div class="botones">
+        <input type="file" id="input-archivo" accept="image/*">
+        <button id="btn-camara">Cámara</button>
+        <button id="btn-capturar" style="display:none;">Capturar Foto</button>
+    </div>
+
+    <div id="video-container">
+        <video id="video" autoplay playsinline style="display:none;"></video>
+        <div id="roi-guide"></div>
+    </div>
+    
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div class="controles" id="controles-panel" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <!-- El umbral por defecto lo he dejado en 133 según tus pruebas -->
+            <label for="threshold">Umbral de Negro: <span id="threshold-val">133</span></label>
+            <input type="range" id="threshold" min="0" max="255" value="133" style="width: 60%;">
+        </div>
+        <p style="font-size:0.85em; color:#666; margin: 8px 0 0 0;">Ajusta el slider hasta que los números se vean negros sólidos sobre fondo blanco.</p>
+    </div>
+
+    <div id="resultado-box">
+        <p id="estado" class="estado">Esperando imagen...</p>
+        <div id="resultado" class="texto-gigante">-</div>
+        <div class="texto-bruto-container">
+            <p style="font-size:0.8em; font-weight:bold; color:#555; margin:0 0 5px 0;">Lectura OCR Bruta:</p>
+            <div id="texto-bruto" class="texto-bruto"></div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const inputArchivo = document.getElementById('input-archivo');
+        const btnCamara = document.getElementById('btn-camara');
+        const btnCapturar = document.getElementById('btn-capturar');
+        const controlesPanel = document.getElementById('controles-panel');
+        const thresholdInput = document.getElementById('threshold');
+        const thresholdValSpan = document.getElementById('threshold-val');
+        const estado = document.getElementById('estado');
+        const resultado = document.getElementById('resultado');
+        const textoBruto = document.getElementById('texto-bruto');
+        const roiGuide = document.getElementById('roi-guide');
+
+        let imagenOriginal = null;
+        let tesseractWorker = null;
+
+        // --- INICIALIZACIÓN DE TESSERACT ---
+        async function initTesseract() {
+            estado.innerText = "Cargando motor OCR...";
+            tesseractWorker = await Tesseract.createWorker('eng', 1, {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        estado.innerText = `Leyendo: ${Math.round(m.progress * 100)}%`;
+                    }
+                }
+            });
+            
+            // Forzar bloque único de texto y lista blanca de caracteres
+            await tesseractWorker.setParameters({
+                tessedit_char_whitelist: '0123456789.',
+                tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+            });
+            estado.innerText = "Motor listo. Esperando imagen.";
+        }
+        initTesseract();
+
+        // --- MANEJO DE IMAGEN/CÁMARA ---
+        inputArchivo.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const img = new Image();
+            img.onload = () => {
+                imagenOriginal = img;
+                iniciarProcesamiento();
+            };
+            img.src = URL.createObjectURL(file);
+        });
+
+        btnCamara.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                canvas.style.display = 'none';
+                roiGuide.style.display = 'block';
+                btnCapturar.style.display = 'inline-block';
+                controlesPanel.style.display = 'none';
+                estado.innerText = "Enfoca los números DENTRO del cuadro rojo y captura.";
+            } catch (err) {
+                alert("Error de cámara: " + err.message);
+            }
+        });
+
+        btnCapturar.addEventListener('click', () => {
+            const img = new Image();
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.style.display = 'none';
+            btnCapturar.style.display = 'none';
+            roiGuide.style.display = 'none';
+            
+            img.onload = () => {
+                imagenOriginal = img;
+                iniciarProcesamiento();
+            };
+            img.src = canvas.toDataURL('image/jpeg');
+        });
+
+        // --- PROCESAMIENTO AVANZADO DE IMAGEN ---
+        thresholdInput.addEventListener('input', (e) => {
+            thresholdValSpan.innerText = e.target.value;
+            if (imagenOriginal) {
+                preprocesarCanvas(imagenOriginal, parseInt(e.target.value));
+            }
+        });
+
+        thresholdInput.addEventListener('change', ejecutarOCR);
+
+        function iniciarProcesamiento() {
+            controlesPanel.style.display = 'block';
+            preprocesarCanvas(imagenOriginal, parseInt(thresholdInput.value));
+            ejecutarOCR();
+        }
+
+        // Función de dilatación (une los segmentos de los números)
+        function aplicarDilatacionNegra(imageData) {
+            const width = imageData.width;
+            const height = imageData.height;
+            const src = new Uint8ClampedArray(imageData.data);
+            const dst = imageData.data;
+
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    let minGris = 255;
+                    
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const kIdx = ((y + ky) * width + (x + kx)) * 4;
+                            if (src[kIdx] < minGris) minGris = src[kIdx];
+                        }
+                    }
+                    dst[idx] = dst[idx+1] = dst[idx+2] = minGris;
+                }
+            }
+        }
+
+        function preprocesarCanvas(img, thresholdValue) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.style.display = 'block';
+            
+            ctx.filter = 'blur(1px) grayscale(1)'; 
+            ctx.drawImage(img, 0, 0);
+            ctx.filter = 'none';
+
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            aplicarDilatacionNegra(imageData);
+
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const gris = data[i];
+                const color = gris < thresholdValue ? 0 : 255; 
+                data[i] = data[i+1] = data[i+2] = color;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // --- LECTURA OCR Y REGLA DE NEGOCIO ---
+        async function ejecutarOCR() {
+            if (!imagenOriginal || !tesseractWorker) return;
+            
+            estado.innerText = "Leyendo con OCR...";
+            resultado.innerText = "...";
+            textoBruto.innerText = "";
+
+            try {
+                const { data: { text } } = await tesseractWorker.recognize(canvas);
+                
+                const coincidencias = text.match(/[0-9\.]+/g);
+                
+                if (coincidencias) {
+                    let numeroFinal = coincidencias.join('').replace(/\s+/g, '');
+                    
+                    // Lógica para inyectar los 3 decimales obligatorios
+                    if (!numeroFinal.includes('.') && numeroFinal.length > 3) {
+                        numeroFinal = numeroFinal.slice(0, -3) + '.' + numeroFinal.slice(-3);
+                    }
+                    
+                    resultado.innerText = numeroFinal;
+                } else {
+                    resultado.innerText = "No detectado";
+                }
+                
+                estado.innerText = "¡Lectura completada!";
+                textoBruto.innerText = text.trim() || "(vacío)";
+
+            } catch (err) {
+                estado.innerText = "Error en el OCR.";
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
